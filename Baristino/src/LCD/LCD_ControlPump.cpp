@@ -15,10 +15,10 @@ Adafruit_GFX_Button btn_pump_back;
 
 uint8_t pumpControlMenuID = 34;
 
-PumpState last_pump_onoff_state = PumpState::OFF;
+WaterControl::WCState last_pump_onoff_state = WaterControl::WCState::OFF;
 
 
-void pumpControlUpdateSetVolume(double value, double *volume) {
+void pumpControlUpdateSetVolume(double value) {
     tft.setTextSize(4);
     tft.setTextColor(myBLUE, myBLACK);
     tft.setCursor(LCD_WIDTH/2 + 80, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD);
@@ -30,20 +30,19 @@ void pumpControlUpdateSetVolume(double value, double *volume) {
         value = config::VOLUME_MAX;
     }
 
-    *volume = value;
-    tft.print((int)*volume); 
-    if (*volume < 100) {
+    tft.print((int)value); 
+    if (value < 100) {
         tft.print(" ");
     }
 }
 
 
-void pumpControlUpdateCurrentVolume(double *volume) {
+void pumpControlUpdateCurrentVolume(double volume) {
     tft.setTextSize(4);
     tft.setTextColor(myBLUE, myBLACK);
     tft.setCursor(LCD_MAIN_ORIGIN_X + 65, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD);
-    tft.print((int)*volume); 
-    if (*volume < 100) {
+    tft.print((int)volume); 
+    if (volume < 100) {
         tft.print("   ");
     }
 }
@@ -51,7 +50,7 @@ void pumpControlUpdateCurrentVolume(double *volume) {
 
 
 // PUMP
-void drawPumpControlMenu(PumpState *pumpStatus, double *setVolume, double *currentVolume) {
+void drawPumpControlMenu(WaterControl::Pump &pump) {
     //drawEmptyScreen();
     drawEmptyScreenDouble();
 
@@ -68,7 +67,7 @@ void drawPumpControlMenu(PumpState *pumpStatus, double *setVolume, double *curre
     btn_pump_back.initButtonUL(&tft, 2*LCD_BORDER + 2*LCD_PAD, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myBLUE, myWHITE, btnLabel[2], 3);
     btn_pump_back.drawButton(false);
 
-    if (*pumpStatus == PumpState::ON || *pumpStatus == PumpState::AUTO) {
+    if (pump.isOn()) {
         btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myGREEN, myWHITE, btnLabel[4], 3);
         btn_pump_onoff.drawButton(false);
     }
@@ -91,11 +90,11 @@ void drawPumpControlMenu(PumpState *pumpStatus, double *setVolume, double *curre
     tft.setTextSize(4);
     tft.setTextColor(myBLUE);
     tft.setCursor(LCD_MAIN_ORIGIN_X + 65, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD);
-    tft.print((int)*currentVolume); 
+    tft.print((int)pump.getCurrentAmount()); 
 
 
     tft.setCursor(LCD_WIDTH/2 + 80, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD);
-    tft.print((int)*setVolume); 
+    tft.print((int)pump.getSetAmount()); 
 
     btn_pump_minus.initButtonUL(&tft, LCD_WIDTH/2 + 1.5*LCD_PAD + LCD_BORDER, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD - 20, 60, 60, myBLUE, myYELLOW, myBLUE, btnLabel[0], 4);
     btn_pump_minus.drawButton(false);
@@ -113,7 +112,7 @@ void drawPumpControlMenu(PumpState *pumpStatus, double *setVolume, double *curre
 }
 
 
-unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *setVolume, double *currentVolume) {
+unsigned int updatePumpControlMenu(WaterControl::Pump &pump) {
     
     bool isTouched = getTouchCoord();
     uint8_t menuID = pumpControlMenuID;
@@ -127,24 +126,26 @@ unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *setVolume, dou
 
     char btnLabel[2][4] = {"On", "Off"};
     // toggle OnOff Button
-    if (last_pump_onoff_state != *pumpStatus) {
-        if (*pumpStatus == PumpState::ON || *pumpStatus == PumpState::AUTO) {
-            btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myGREEN, myWHITE, btnLabel[0], 3);
-            btn_pump_onoff.drawButton(false);
-        }
-        else {
-            btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myRED, myWHITE, btnLabel[1], 3);
-            btn_pump_onoff.drawButton(false);
-        }
-        last_pump_onoff_state = *pumpStatus;
+    
+    if (pump.isOn()) {
+        btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myGREEN, myWHITE, btnLabel[0], 3);
+        btn_pump_onoff.drawButton(false);
+        //last_pump_onoff_state = WaterControl::WCState::ON;
     }
+    else {
+        btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myRED, myWHITE, btnLabel[1], 3);
+        btn_pump_onoff.drawButton(false);
+        //last_pump_onoff_state = WaterControl::WCState::OFF;
+    }
+
 
     if (btn_pump_minus.justReleased()) {
         btn_pump_minus.drawButton(false);
     }
     if (btn_pump_minus.justPressed()) {
         btn_pump_minus.drawButton(true);
-        pumpControlUpdateSetVolume(*setVolume - 10.0, setVolume);
+        pump.setAmount(pump.getSetAmount() - 10.0);
+        pumpControlUpdateSetVolume(pump.getSetAmount());
     }
 
     if (btn_pump_plus.justReleased()) {
@@ -152,12 +153,13 @@ unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *setVolume, dou
     }
     if (btn_pump_plus.justPressed()) {
         btn_pump_plus.drawButton(true);
-        pumpControlUpdateSetVolume(*setVolume + 10.0, setVolume);
+        pump.setAmount(pump.getSetAmount() + 10.0);
+        pumpControlUpdateSetVolume(pump.getSetAmount());
     }
 
     if (btn_pump_reset.justReleased()) {
         btn_pump_reset.drawButton(false);
-        *currentVolume = 0.0;
+        pump.tareScale();
     }
     if (btn_pump_reset.justPressed()) {
         btn_pump_reset.drawButton(true);
@@ -168,12 +170,12 @@ unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *setVolume, dou
     }
     if (btn_pump_onoff.justPressed()) {
         btn_pump_onoff.drawButton(true);
-        if (*pumpStatus == PumpState::OFF) {
-            *pumpStatus = PumpState::ON;
+        if (pump.isOff()) {
+            pump.switchOn();
         }
-        else if (*pumpStatus == PumpState::ON)
+        else if (pump.isOn())
         {
-            *pumpStatus = PumpState::OFF;
+            pump.switchOff();
         }
         
     }
@@ -183,7 +185,7 @@ unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *setVolume, dou
     }
     if (btn_pump_auto.justPressed()) {
         btn_pump_auto.drawButton(true);
-        *pumpStatus = PumpState::AUTO;
+        //*pumpStatus = PumpState::AUTO;
     }
 
     if (btn_pump_back.justReleased()) {
@@ -196,7 +198,7 @@ unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *setVolume, dou
     }
 
 
-    pumpControlUpdateCurrentVolume(currentVolume);
+    pumpControlUpdateCurrentVolume(pump.getCurrentAmount());
     return menuID;
 }
 

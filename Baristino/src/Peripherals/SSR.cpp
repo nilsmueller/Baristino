@@ -6,8 +6,9 @@
 // TODO This class only allows a single PWM single to be generated. Right now the workaround is to handle
 // TODO SSR like simple digtialWrite when no carrier frequency is given (and therefor no PWM capabilites).
 
-SolidStateRelay::SolidStateRelay(uint8_t pin) {
-  m_pin = pin;
+SolidStateRelay::SolidStateRelay(uint8_t pin) :
+m_pin(pin) 
+{
   pinMode(pin, OUTPUT);
   m_dutyCycle = 1.0;
 
@@ -16,10 +17,11 @@ SolidStateRelay::SolidStateRelay(uint8_t pin) {
 }
 
 // constructor
-SolidStateRelay::SolidStateRelay(uint8_t pin, uint16_t pwm_resolution, double carrier_freq) {
-  m_pin = pin;
-  m_resolutionPWM = pwm_resolution;                 // bit, the resolution of the pwm signal
-  m_periodCarrier = (1 / carrier_freq) * 1000000;   // us, period of the carrier signal
+SolidStateRelay::SolidStateRelay(uint8_t pin, uint16_t pwm_resolution, double carrier_freq) :
+m_pin(pin),
+m_resolutionPWM(pwm_resolution),
+m_frequencyCarrier(carrier_freq) {               // bit, the resolution of the pwm signal
+  m_periodCarrier = (1 / m_frequencyCarrier) * 1000000;   // us, period of the carrier signal
   m_periodBit = m_periodCarrier / 2;                // us, period of a half wacve which is 1 Bit in case of the SSR
   m_numValues = pow(2, m_resolutionPWM) + 1;        // int. number of valid duty cycles
   m_periodPWM = m_periodBit * m_numValues;          // us, duration of the pwm signal
@@ -38,11 +40,6 @@ SolidStateRelay::SolidStateRelay(uint8_t pin, uint16_t pwm_resolution, double ca
 
 void SolidStateRelay::initialize() {
     // set TIMER1 frequency
-  Serial.print("PIN : ");
-  Serial.print(m_pin);
-  Serial.print(" PERIOD : ");
-  Serial.print(m_periodPWM);
-  
   Timer1.initialize(m_periodPWM);   // set the timer1 frequency according to the resolution and carrier frequency
   Timer1.pwm(m_pin, 0);           // set init duty cycle to 0
   
@@ -127,12 +124,6 @@ void SolidStateRelay::setDutyCycle(double value) {
   m_dutyCycle = getValidDutyCycle(value);
   m_widthPulse = (int)m_dutyCycle * m_periodPWM;
   Timer1.setPwmDuty(m_pin, m_dutyCycle * 1023);
-
-  //if (m_dutyCycle != m_lastDutyCycle) {
-  //  m_widthPulse = (int)m_dutyCycle * m_periodPWM;
-  //  Timer1.setPwmDuty(m_pin, m_dutyCycle * 1023);
-  //  m_lastDutyCycle = m_dutyCycle;
-  //}
 }
 
 /**

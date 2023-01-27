@@ -28,7 +28,7 @@ void PIDHeater::initialize() {
   setupTempSensor();
 
   m_SSR.initialize();
-  powerOff();
+  //powerOff();
 }
 
 
@@ -129,7 +129,7 @@ double PIDHeater::getTemperature() {
 
 
 void PIDHeater::setTemperature(double setPoint) {
-  if (setPoint >= 100) {
+  if (setPoint >= config::TEMPERATURE_MAX) {
     Serial.println("ERROR : ERR_MAXTEMP");
     powerOff();
   }
@@ -158,10 +158,10 @@ void PIDHeater::checkForSteadyState() {
 
 void PIDHeater::update() {
   // read the current temperatures
-  (void)requestTemp();
+  requestTemp();
 
   if (isHeating()) {
-    (void)updatePIDControl();
+    updatePIDControl();
     checkForSteadyState();
   }
 }
@@ -221,8 +221,7 @@ void PIDHeater::watchPIDControl() {
   Serial.print("   OUT:");
   Serial.print(m_pidOutput);
   Serial.print("   DUTY:");
-  float duty = m_SSR.getDutyCycle();
-  Serial.print(duty);
+  Serial.print(m_SSR.getDutyCycle());
 }
 
 

@@ -39,6 +39,7 @@ class SolidStateRelay {
     double m_dutyCycle;                      // [0 - 1], the current duty cycle
     double m_lastDutyCycle = 0.0;
     double m_currentDutyCycle;
+    double m_frequencyCarrier = 50.0;
 
     double getValidDutyCycle(double value);
 };

@@ -11,7 +11,7 @@
 #include <Adafruit_GFX.h>
 #include <TouchScreen.h>
 #include <MCUFRIEND_kbv.h>
-
+#include "../Peripherals/Pump.h"
 
 // TOUCH CONFIGURATIONS
 #define MINPRESSURE 200
@@ -82,7 +82,7 @@ extern void drawEmptyScreenDouble();
 extern void drawMainMenu();
 extern void drawCoffeeMenu(double *volume, double *temperature, double *quantity);
 extern void drawControlMenu();
-extern void drawPumpControlMenu(PumpState *pumpStatus, double *setVolume, double *currentVolume);
+extern void drawPumpControlMenu(WaterControl::Pump &pump);
 extern void drawGrinderControlMenu(GrinderState *grinderStatus, double *setQuantity, double *currentQuantity);
 extern void drawErrorScreen(ErrorCode code);
 
@@ -90,7 +90,7 @@ extern void updateWarmUpScreen(double percentage);
 extern unsigned int updateMainMenu();
 extern unsigned int updateCoffeeMenu(double *volume, double *temperature, double *quantity);
 extern unsigned int updateControlMenu();
-extern unsigned int updatePumpControlMenu(PumpState *pumpStatus, double *currentVolume, double *setVolume);
+extern unsigned int updatePumpControlMenu(WaterControl::Pump &pump);
 extern unsigned int updateGrinderControlMenu(GrinderState *grinderStatus, double *currentQuantity, double *setQuantity);
 
 }

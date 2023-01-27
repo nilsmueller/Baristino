@@ -58,14 +58,14 @@ void Pump::tareScale() {
 void Pump::updateScale() {
     //m_currentAmount = m_scale.get_units(1);
 
-    if (millis() - m_lastScaleRequest >  m_updateRequestMillis) {
-        m_currentAmount = m_scale.get_units(1);
-        m_lastScaleRequest = millis();
-    }
-    else {
-        Serial.println("Pump Scale Reading outdated!");
+    //if (millis() - m_lastScaleRequest >  m_updateRequestMillis) {
+    m_currentAmount = m_scale.get_units(1);
+    m_lastScaleRequest = millis();
+    //}
+    //else {
+    //    Serial.println("Pump Scale Reading outdated!");
         // return ERROR or so
-    }
+    //}
 }
 
 
@@ -78,6 +78,10 @@ double Pump::getCurrentAmount() {
     return m_currentAmount;
 }
 
+
+double Pump::getSetAmount() {
+    return m_setAmount;
+}
 
 void Pump::switchOff() {
     //m_SSR.switchOff();

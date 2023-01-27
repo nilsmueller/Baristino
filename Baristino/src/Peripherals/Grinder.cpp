@@ -98,12 +98,13 @@ void Hopper::tareScale() {
 
 
 void Hopper::updateScale() {
-    if (millis() - m_lastScaleRequest >  m_updateRequestMillis) {
-        m_currentAmount = m_scale.get_units(1);
-    }
-    else {
-        Serial.println("Grinder Scale Reading outdated!");
-    }
+    //if (millis() - m_lastScaleRequest >  m_updateRequestMillis) {
+    m_currentAmount = m_scale.get_units(1);
+    //}
+    //else {
+    //    Serial.println("Grinder Scale Reading outdated!");
+    //}
+    checkForFinshed();
 }
 
 

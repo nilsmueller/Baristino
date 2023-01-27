@@ -56,6 +56,8 @@ bool Ensemble::checkIfHomed() {
     if (isMovingUp() && !isCurrentNominal()) {
         m_motor.stop();
         m_currentState = BGState::HOMED;
+        m_encoder.setOrigin();
+        Serial.print("BrewGroup Homed Successfully");
         return true;
     }
     return false;
@@ -157,6 +159,10 @@ bool Ensemble::isCurrentNominal()
 }
 
 
+double Ensemble::getCurrent() {
+    return m_ampmeter.readCurrent();
+}
+
 // PRIVATE
 void Ensemble::moveToPosition(int16_t position) {
     int16_t targetPosition = m_encoder.checkPositionValidity(position);
@@ -234,6 +240,8 @@ void RotaryEncoder::initialize()
 void RotaryEncoder::setOrigin()
 {
     m_currentPosition = 0;
+    m_lastEncoderStateA = m_encoderStateA;
+    m_lastEncoderStateB = m_encoderStateB;
 }
 
 

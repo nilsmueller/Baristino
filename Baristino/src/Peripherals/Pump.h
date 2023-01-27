@@ -36,6 +36,7 @@ class Pump {
         void updateScale();
         void setAmount(double amount);
         double getCurrentAmount();
+        double getSetAmount();
         void switchOn();
         void switchOff();
 

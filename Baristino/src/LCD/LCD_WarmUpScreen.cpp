@@ -32,8 +32,8 @@ void drawWarmUpScreen() {
 
 void updateWarmUpScreen(double percentage) {
 
-  int perc = int(percentage);
-  int percentage_px = (int)(296 * percentage/100);
+  int perc = int(percentage * 100);
+  int percentage_px = (int)(296 * percentage);
 
   int x0 = LCD_WIDTH/2 - 200 + 2;
   int y0 = LCD_HEIGHT/3 + 52;

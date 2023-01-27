@@ -62,7 +62,7 @@ static const double QUANTITY_MAX = 20.0;
 static const double EXTRACTION_LOADCELL_CALIBRATION_FACTOR = -1065.019512;
 
 // Thermoblock
-static const double TEMP_WARMUP = 90.0;
+static const double TEMP_WARMUP = 100.0;
 static const int PWM_RESOLUTION_SSR_THERMOBLOCK = 6;
 static const double PWM_CARRIER_FREQUENCY = 50.0f;
 static const int DS18B20_RESOLUTION_TEMPSENSOR = 10;

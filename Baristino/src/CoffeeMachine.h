@@ -26,6 +26,8 @@ enum class MachineState : uint8_t {
     BREWGROUP_INSERTION,
     TAMPERING,
     EXTRACTION,
+    BREWGROUP_HOME,
+    GRINDER_HOME,
     RETURN_TO_IDLE,
 };
 
@@ -37,10 +39,12 @@ class CoffeeMachine {
         void initialize();
         void warmup();
         void makeCoffee();
-        void makeCoffeeNonBlocking();
 
-        void fillSystem();
-        void flush();
+        void updateSensors();
+        void printSensorValues();
+        void updateLCD();
+        void updateMenuSelection();
+
 
     private:
         ThermoBlock::PIDHeater m_unitThermoBlock;
@@ -49,21 +53,20 @@ class CoffeeMachine {
         BrewGroup::Ensemble m_unitBrewGroup;
         
         double m_setVolume = 100.0;
-        double m_setTemperature = 99.0;
+        double m_setTemperature = 110.0;
         double m_setQuantity = 10.0;
         double m_currentVolume = 0.0;
         double m_currentTemperature;
         double m_currentQuantity;
 
+        int16_t m_brewGroupPosition;
+        double m_brewGroupCurrent;
         // Menu
         uint8_t m_currentMenuID = 0; // ID of the current Menu
         uint8_t m_newMenuID = 0;     // variable that stores the ID of a potential new Menu
         long m_lastTouch = millis();
+        void changeMenu();
 
-
-        void updateSensors();
-        
-        bool m_brewState = false;
         MachineState m_currentState = MachineState::IDLE;
 
         unsigned long m_grinderFlapOpenedTimestamp;

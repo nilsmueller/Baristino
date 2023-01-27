@@ -64,6 +64,7 @@ class PIDHeater{
   double getTemperature();
 
   TBState getState();
+  void power(double percentage);
 
   private:
 
@@ -87,7 +88,6 @@ class PIDHeater{
   // non PID Control
   void powerOn();
   void powerOff();
-  void power(double percentage);
 
   // PID
   PID m_PID;
