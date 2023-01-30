@@ -124,12 +124,12 @@ class Ensemble {
         RotaryEncoder m_encoder;
         AmpMeter m_ampmeter;
 
-        int16_t m_positionOpen = 60;
+        int16_t m_positionOpen = 73;//73
         int16_t m_positionPress = 200;
 
 
-        double m_minCurrent = -2.6; // A // downward movement (positive step directio)
-        double m_maxCurrent = 2.3; // A // upward movement (negative step directio)
+        double m_minCurrent = -2.4; // A // downward movement (positive step directio)
+        double m_maxCurrent = 2.5; // A // upward movement (negative step directio)
         double m_minCurrentFromIdle = -3.5;
         double m_maxCurrentFromIdle = 3.5;
 

@@ -33,7 +33,7 @@
 // |--- "0" : Main Menu
 // |
 // |--- "1" : Coffee Menu
-// |     |--- "11" : Coffee Brew Menu
+// |     |--- "11" : Make Coffee Menu
 // |
 // |--- "2" : Profile Menu
 // |
@@ -81,6 +81,7 @@ extern void drawEmptyScreen();
 extern void drawEmptyScreenDouble();
 extern void drawMainMenu();
 extern void drawCoffeeMenu(double *volume, double *temperature, double *quantity);
+extern void drawMakeCoffeeScreen();
 extern void drawControlMenu();
 extern void drawPumpControlMenu(WaterControl::Pump &pump);
 extern void drawGrinderControlMenu(GrinderState *grinderStatus, double *setQuantity, double *currentQuantity);

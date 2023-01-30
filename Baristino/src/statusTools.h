@@ -1,6 +1,5 @@
 #pragma once
 
-
 template<typename StatusEnum>
 constexpr bool isSuccessful(StatusEnum status) {
   return status == StatusEnum::SUCCESS;
@@ -72,3 +71,4 @@ template<typename StatusEnum, typename ValueType>
 constexpr bool hasError(const StatusResult<StatusEnum, ValueType>& result) {
   return result.hasError();
 }
+

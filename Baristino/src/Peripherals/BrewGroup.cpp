@@ -234,8 +234,8 @@ void RotaryEncoder::initialize()
     pinMode(m_pinA, INPUT);
     pinMode(m_pinB, INPUT);
     m_lastEncoderStateA = digitalRead(m_pinA);
+    m_lastEncoderStateB = analogRead(m_pinB) > m_encoderThreshB ? 1 : 0;
 }
-
 
 void RotaryEncoder::setOrigin()
 {

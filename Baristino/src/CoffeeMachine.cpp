@@ -1,6 +1,7 @@
 #include "CoffeeMachine.h"
 
 
+
 // Constructor with member init
 CoffeeMachine::CoffeeMachine() :
 m_unitThermoBlock(pindef::SSR_THERMOBLOCK, pindef::DS18B20_THERMOBLOCK),
@@ -27,6 +28,7 @@ void CoffeeMachine::initialize() {
 void CoffeeMachine::warmup() {
 
     LCD::drawWarmUpScreen();
+    
     m_unitThermoBlock.setTemperature(config::TEMP_WARMUP);
     m_unitThermoBlock.startPIDControl();
 
@@ -45,11 +47,13 @@ void CoffeeMachine::warmup() {
         Serial.println();
         delay(10);
     }
-
+    
     // home brew group
     Serial.println("BREWGROUP_HOMING ");
     m_unitBrewGroup.moveUp();
     while (m_unitBrewGroup.isMovingUp()) {
+        Serial.print("Amps : ");
+        Serial.println(m_unitBrewGroup.getCurrent());
         m_unitBrewGroup.updatePosition();
         m_unitBrewGroup.checkIfHomed();
     }
@@ -59,6 +63,8 @@ void CoffeeMachine::warmup() {
     // open brew group
     m_unitBrewGroup.moveDown();
     while (m_unitBrewGroup.isMovingDown()) {
+        Serial.print("Amps : ");
+        Serial.println(m_unitBrewGroup.getCurrent());
         m_unitBrewGroup.updatePosition();
         m_unitBrewGroup.checkIfOpened();
     }
@@ -77,7 +83,7 @@ void CoffeeMachine::updateSensors() {
     m_unitThermoBlock.update();
     m_currentTemperature = m_unitThermoBlock.getTemperature();
 
-    m_unitBrewGroup.updatePosition();
+    //m_unitBrewGroup.updatePosition();
     m_brewGroupPosition = m_unitBrewGroup.getPosition();
     m_brewGroupCurrent = m_unitBrewGroup.getCurrent();
 }
@@ -197,8 +203,8 @@ void CoffeeMachine::makeCoffee() {
 
     case MachineState::RETURN_TO_IDLE:
         Serial.print("RETURN_TO_IDLE ");
-
         if (m_unitBrewGroup.isMovingDown()) {
+            Serial.print("MOVING DOWN");
             m_unitBrewGroup.updatePosition();
             m_unitBrewGroup.checkIfOpened();
         }

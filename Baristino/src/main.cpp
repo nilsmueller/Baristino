@@ -1,5 +1,21 @@
 #include <Arduino.h>
+#include "configuration.h"
+#include "Peripherals/RotaryEncoderInterrupt.h"
 
+RotaryEncoderInterrupt encoder = RotaryEncoderInterrupt(pindef::BREWGROUP_ENCODER_INPUT_A, pindef::BREWGROUP_ENCODER_INPUT_B);
+
+void setup() {
+  Serial.begin(115200);
+  encoder.initialize();
+}
+
+
+void loop() {
+  //encoder.print();
+  delay(10);
+}
+
+/*
 #include "CoffeeMachine.h"
 CoffeeMachine myCoffeeMachine = CoffeeMachine();
 
@@ -29,5 +45,7 @@ void loop() {
   myCoffeeMachine.updateLCD();
   //myCoffeeMachine.updateMenuSelection();
 }
+
+*/
 
 

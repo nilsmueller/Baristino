@@ -17,6 +17,9 @@
 #include "Peripherals/Grinder.h"
 #include "Peripherals/Pump.h"
 
+
+
+
 enum class MachineState : uint8_t {
     IDLE,
     STDBY,
@@ -52,8 +55,8 @@ class CoffeeMachine {
         Grinder::Hopper m_unitGrinder;
         BrewGroup::Ensemble m_unitBrewGroup;
         
-        double m_setVolume = 100.0;
-        double m_setTemperature = 110.0;
+        double m_setVolume = 150.0;
+        double m_setTemperature = 115.0;
         double m_setQuantity = 10.0;
         double m_currentVolume = 0.0;
         double m_currentTemperature;
