@@ -18,23 +18,26 @@ class RotaryEncoder{
         RotaryEncoder(uint8_t pinA, uint8_t pinB);
 
         void initialize();
-        void updatePosition();
+        //void updatePosition();
         int16_t getPosition();
         int16_t getTolerance();
         int16_t checkPositionValidity(int16_t targetPosition);
         void setOrigin();
 
     private:
-        uint8_t m_pinA;
+        uint8_t m_pinA; // digital interrupt pin
         uint8_t m_pinB;
-        int16_t m_currentPosition = 1;
-        int16_t m_stepTolerance = 2;
+        int16_t m_currentPosition = 0;
+        int16_t m_stepTolerance = 1;
         int16_t m_encoderStateA;
         int16_t m_encoderStateB;
         int16_t m_lastEncoderStateA;
         int16_t m_lastEncoderStateB;
         int16_t m_encoderThreshB = 860;
-        int16_t m_maxStep = 324;
+
+        static void isrUpdate();
+        void updatePosition();
+        static RotaryEncoder *instance;
 };
 
 
@@ -124,9 +127,7 @@ class Ensemble {
         RotaryEncoder m_encoder;
         AmpMeter m_ampmeter;
 
-        int16_t m_positionOpen = 73;//73
-        int16_t m_positionPress = 200;
-
+        int16_t m_positionOpen = 120;
 
         double m_minCurrent = -2.4; // A // downward movement (positive step directio)
         double m_maxCurrent = 2.5; // A // upward movement (negative step directio)

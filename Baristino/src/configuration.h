@@ -31,7 +31,7 @@ namespace pindef {
     const int BREWGROUP_MOTOR_IN_1 = 41;
     const int BREWGROUP_MOTOR_IN_2 = 40;
     const int BREWGROUP_MOTOR_AMPMETER = A15;
-    const int BREWGROUP_ENCODER_INPUT_A = 21; //A13;
+    const int BREWGROUP_ENCODER_INPUT_A = 21; // 21 is an interrupt pin on the Mega. //A13;
     const int BREWGROUP_ENCODER_INPUT_B = A14;
 
     // Scale

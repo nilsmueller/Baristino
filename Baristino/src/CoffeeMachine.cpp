@@ -9,7 +9,6 @@ m_unitPump(pindef::SSR_WATERPUMP, pindef::BEVERAGE_LOADCELL_SCK, pindef::BEVERAG
 m_unitGrinder(config::STEPPER_STEPS_PER_REV, pindef::STEPPER_1, pindef::STEPPER_2, pindef::STEPPER_3, pindef::STEPPER_4, pindef::HOPPER_LOADCELL_DOUT, pindef::HOPPER_LOADCELL_SCK, pindef::SSR_GRINDER),
 m_unitBrewGroup(pindef::BREWGROUP_MOTOR_IN_1, pindef::BREWGROUP_MOTOR_IN_2, pindef::BREWGROUP_MOTOR_ENA, pindef::BREWGROUP_ENCODER_INPUT_A, pindef::BREWGROUP_ENCODER_INPUT_B, pindef::BREWGROUP_MOTOR_AMPMETER)
 {
-    Serial.println("Hi i am the Constructor");
 }
 
 
@@ -32,12 +31,14 @@ void CoffeeMachine::warmup() {
     m_unitThermoBlock.setTemperature(config::TEMP_WARMUP);
     m_unitThermoBlock.startPIDControl();
 
-    
+    double progress;    
     while (!m_unitThermoBlock.isSteadyState()) {
         m_unitThermoBlock.update();
         m_currentTemperature = m_unitThermoBlock.getTemperature();
+        progress = (config::TEMP_WARMUP - abs(config::TEMP_WARMUP - m_currentTemperature)) / config::TEMP_WARMUP;
+        LCD::updateWarmUpScreen(progress);
 
-        LCD::updateWarmUpScreen(m_currentTemperature / config::TEMP_WARMUP);
+        // print status
         Serial.print("WARMUP - Temp = ");
         Serial.print(m_currentTemperature);
         Serial.print(" / ");
@@ -54,7 +55,6 @@ void CoffeeMachine::warmup() {
     while (m_unitBrewGroup.isMovingUp()) {
         Serial.print("Amps : ");
         Serial.println(m_unitBrewGroup.getCurrent());
-        m_unitBrewGroup.updatePosition();
         m_unitBrewGroup.checkIfHomed();
     }
     delay(4000);
@@ -65,7 +65,6 @@ void CoffeeMachine::warmup() {
     while (m_unitBrewGroup.isMovingDown()) {
         Serial.print("Amps : ");
         Serial.println(m_unitBrewGroup.getCurrent());
-        m_unitBrewGroup.updatePosition();
         m_unitBrewGroup.checkIfOpened();
     }
 
@@ -90,11 +89,11 @@ void CoffeeMachine::updateSensors() {
 
 
 void CoffeeMachine::printSensorValues() {
-    Serial.print("Temp : ");
+    Serial.print(" TB_Temp : ");
     Serial.print(m_currentTemperature);
-    Serial.print(", Amount : ");
+    Serial.print(", GR_Amount : ");
     Serial.print(m_currentQuantity);
-    Serial.print(", Volume : ");
+    Serial.print(", WC_Volume : ");
     Serial.print(m_currentVolume);
     Serial.print("   BG_Position : ");
     Serial.print(m_brewGroupPosition);
@@ -161,7 +160,6 @@ void CoffeeMachine::makeCoffee() {
     case MachineState::TAMPERING:
         Serial.print("TAMPERING ");
         if (m_unitBrewGroup.isMoving()) {
-            m_unitBrewGroup.updatePosition();
             m_unitBrewGroup.checkIfPressed();
         }
 
@@ -191,7 +189,7 @@ void CoffeeMachine::makeCoffee() {
         Serial.print("BREWGROUP_HOME ");
         // first home
         if (m_unitBrewGroup.isMovingUp()) {
-            m_unitBrewGroup.updatePosition();
+        
             m_unitBrewGroup.checkIfHomed();
         }
 
@@ -205,7 +203,6 @@ void CoffeeMachine::makeCoffee() {
         Serial.print("RETURN_TO_IDLE ");
         if (m_unitBrewGroup.isMovingDown()) {
             Serial.print("MOVING DOWN");
-            m_unitBrewGroup.updatePosition();
             m_unitBrewGroup.checkIfOpened();
         }
 
