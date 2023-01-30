@@ -17,7 +17,8 @@
 #include "Peripherals/Grinder.h"
 #include "Peripherals/Pump.h"
 
-
+#include <SPI.h>
+#include <SD.h>
 
 
 enum class MachineState : uint8_t {
@@ -73,6 +74,9 @@ class CoffeeMachine {
         MachineState m_currentState = MachineState::IDLE;
 
         unsigned long m_grinderFlapOpenedTimestamp;
+
+        bool m_SDCardEnabled = false;
+        void writeToSD();
 };
 
 #endif

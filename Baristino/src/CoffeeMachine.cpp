@@ -19,6 +19,11 @@ void CoffeeMachine::initialize() {
     m_unitPump.initialize();
     m_unitGrinder.initialize();
     m_unitBrewGroup.initialize();
+
+    if (SD.begin(pindef::CHIP_SELECT)) {
+        m_SDCardEnabled = true;
+        Serial.println("SD Card is present and ready.");
+    }
 }
 
 
@@ -286,6 +291,34 @@ void CoffeeMachine::updateLCD() {
 
     changeMenu();
     
+}
+
+
+void CoffeeMachine::writeToFile() {
+    if (m_SDCardEnabled) {
+        m_myFile = SD.open(config::FILENAME, FILE_WRITE);
+
+        if (m_myFile) {
+            m_myFile.print(millis());
+            m_myFile.print(",");
+            m_myFile.print(m_currentTemperature);
+            m_myFile.print(",");
+            m_myFile.print(m_unitThermoBlock.getPIDsetpoint());
+            m_myFile.print(",");
+            m_myFile.print(m_unitThermoBlock.getPIDinput());
+            m_myFile.print(",");
+            m_myFile.print(m_unitThermoBlock.getPIDouput());
+            m_myFile.print(",");
+            m_myFile.print(m_currentQuantity);
+            m_myFile.print(",");
+            m_myFile.print(m_currentVolume);
+            m_myFile.println();
+        }
+        else {
+            Serial.println("Error opening File");
+        }
+
+    }
 }
 
 

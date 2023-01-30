@@ -225,5 +225,8 @@ void PIDHeater::watchPIDControl() {
 }
 
 
+double PIDHeater::getPIDinput() {return m_pidInput;}
+double PIDHeater::getPIDsetpoint() {return m_pidSetpoint;}
+double PIDHeater::getPIDouput() {return m_pidOutput;}
 
 }

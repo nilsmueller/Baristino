@@ -10,6 +10,7 @@
             "includePath": [
                 "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/include",
                 "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/src",
+                "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/SD",
                 "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/HX711/src",
                 "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Stepper/src",
                 "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Adafruit TouchScreen",
@@ -35,6 +36,7 @@
                 "path": [
                     "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/include",
                     "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/src",
+                    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/SD",
                     "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/HX711/src",
                     "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Stepper/src",
                     "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Adafruit TouchScreen",
