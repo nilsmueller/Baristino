@@ -34,6 +34,7 @@ class RotaryEncoder{
         int16_t m_lastEncoderStateA;
         int16_t m_lastEncoderStateB;
         int16_t m_encoderThreshB = 860;
+        int16_t m_maxStep = 324;
 
         static void isrUpdate();
         void updatePosition();
