@@ -18,17 +18,17 @@ class RotaryEncoder{
         RotaryEncoder(uint8_t pinA, uint8_t pinB);
 
         void initialize();
-        void updatePosition();
+        //void updatePosition();
         int16_t getPosition();
         int16_t getTolerance();
         int16_t checkPositionValidity(int16_t targetPosition);
         void setOrigin();
 
     private:
-        uint8_t m_pinA;
+        uint8_t m_pinA; // digital interrupt pin
         uint8_t m_pinB;
-        int16_t m_currentPosition = 1;
-        int16_t m_stepTolerance = 2;
+        int16_t m_currentPosition = 0;
+        int16_t m_stepTolerance = 1;
         int16_t m_encoderStateA;
         int16_t m_encoderStateB;
         int16_t m_lastEncoderStateA;

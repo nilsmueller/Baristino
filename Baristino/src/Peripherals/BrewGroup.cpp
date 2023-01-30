@@ -26,7 +26,6 @@ void Ensemble::initialize() {
 }
 
 
-
 void Ensemble::moveDown() {
     m_motor.rotate(true);
     m_currentState = BGState::MOVINGDOWN;
@@ -110,7 +109,6 @@ void Ensemble::press() {
     //moveToPosition(m_positionPress);
     while (isCurrentNominal()) {;
         m_motor.rotate(true);
-        m_encoder.updatePosition();
         Serial.print("PRESS AMPS : ");
         Serial.print(m_ampmeter.readCurrent());
         Serial.print("  POS : ");
@@ -119,11 +117,6 @@ void Ensemble::press() {
     }
     m_motor.stop();
     m_currentState = BGState::PRESSED;
-    
-}
-
-void Ensemble::updatePosition() {
-    m_encoder.updatePosition();
 }
 
 
@@ -163,60 +156,6 @@ double Ensemble::getCurrent() {
     return m_ampmeter.readCurrent();
 }
 
-// PRIVATE
-void Ensemble::moveToPosition(int16_t position) {
-    int16_t targetPosition = m_encoder.checkPositionValidity(position);
-
-    if (targetPosition > m_encoder.getPosition()) {
-        m_motor.rotate(true);
-
-        while (targetPosition > m_encoder.getPosition() + m_encoder.getTolerance()) {
-            m_encoder.updatePosition();
-
-            Serial.print("DOWN AMPS : ");
-            Serial.print(m_ampmeter.readCurrent());
-            Serial.print("  POS : ");
-            Serial.println(m_encoder.getPosition());
-
-            if (!isCurrentNominal()) {
-                m_motor.stop();
-                Serial.println("ERROR : Current Limit Exceeded. Motor has Stalled.");
-                return;
-            }
-        }
-
-        m_motor.stop();
-    }
-
-    else if (targetPosition < m_encoder.getPosition()) {
-        m_motor.rotate(false);
-
-        while (targetPosition < m_encoder.getPosition() - m_encoder.getTolerance()) {
-            m_encoder.updatePosition();
-            
-
-            Serial.print("UP AMPS : ");
-            Serial.print(m_ampmeter.readCurrent());
-            Serial.print("  POS : ");
-            Serial.println(m_encoder.getPosition());
-
-            if (!isCurrentNominal()) {
-                m_motor.stop();
-                Serial.println("ERROR : Current Limit Exceeded. Motor has Stalled.");
-                return;
-            }
-        }
-
-        m_motor.stop();
-    }
-
-    else {
-        m_motor.stop();
-    }
-}
-
-
-
 }
 
 
@@ -235,6 +174,9 @@ void RotaryEncoder::initialize()
     pinMode(m_pinB, INPUT);
     m_lastEncoderStateA = digitalRead(m_pinA);
     m_lastEncoderStateB = analogRead(m_pinB) > m_encoderThreshB ? 1 : 0;
+
+    attachInterrupt(digitalPinToInterrupt(m_pinA), isrUpdate, CHANGE);
+    instance = this;
 }
 
 void RotaryEncoder::setOrigin()
@@ -242,6 +184,11 @@ void RotaryEncoder::setOrigin()
     m_currentPosition = 0;
     m_lastEncoderStateA = m_encoderStateA;
     m_lastEncoderStateB = m_encoderStateB;
+}
+
+
+void RotaryEncoder::isrUpdate() {
+    RotaryEncoder::instance->updatePosition();
 }
 
 
@@ -291,6 +238,9 @@ int16_t RotaryEncoder::checkPositionValidity(int16_t targetPosition) {
     }
     return pos;
 }
+
+
+RotaryEncoder *RotaryEncoder::instance;
 
 
 // DC MOTOR
