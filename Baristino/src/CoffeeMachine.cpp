@@ -19,11 +19,15 @@ void CoffeeMachine::initialize() {
     m_unitPump.initialize();
     m_unitGrinder.initialize();
     m_unitBrewGroup.initialize();
-
-    LCD::drawMainMenu();
 }
 
 
+/// @brief The Coffee Machine Warmup sequence. This method
+// heats the thermoblock to the specified config::TEMP_WARMUP
+// temperature. It updated the progress bar on the TFT Screen while
+// the set temperature is not achieved. On achieving the set temperature
+// it switches to the Main Menu. It does not stop the PID control loop.
+// so the Thermoblock temperature is kept at the set temperature.s
 void CoffeeMachine::warmup() {
 
     LCD::drawWarmUpScreen();
@@ -114,109 +118,108 @@ void CoffeeMachine::makeCoffee() {
         m_unitGrinder.closeFlap();
     }
     */
+    if (m_newMenuID == 11) {
+        m_unitThermoBlock.update();
 
-    m_unitThermoBlock.update();
+        switch (m_currentState)
+        {
+        case MachineState::IDLE:
+            m_unitThermoBlock.setTemperature(m_setTemperature);
+            m_unitThermoBlock.startPIDControl();
+            m_currentState = MachineState::HEATING;
+            break;
 
-    switch (m_currentState)
-    {
-    case MachineState::IDLE:
-        m_unitThermoBlock.setTemperature(m_setTemperature);
-        m_unitThermoBlock.startPIDControl();
-        m_currentState = MachineState::HEATING;
-        break;
+        case MachineState::HEATING:
+            Serial.print("HEATING ");
+            m_unitGrinder.setDose(m_setQuantity);
+            m_unitGrinder.tareScale();
+            m_unitGrinder.switchMotorOn();
+            m_currentState = MachineState::GRINDING;
+            break;
 
-    case MachineState::HEATING:
-        Serial.print("HEATING ");
-        m_unitGrinder.setDose(m_setQuantity);
-        m_unitGrinder.tareScale();
-        m_unitGrinder.switchMotorOn();
-        m_currentState = MachineState::GRINDING;
-        break;
+        case MachineState::GRINDING:
+            Serial.print("GRINDING ");
+            m_unitGrinder.updateScale();
 
-    case MachineState::GRINDING:
-        Serial.print("GRINDING ");
-        m_unitGrinder.updateScale();
+            if (m_unitGrinder.isFinished()) {
+                m_unitGrinder.switchMotorOff();
+                m_currentState = MachineState::BREWGROUP_INSERTION;
+            }
+            break;
 
-        if (m_unitGrinder.isFinished()) {
-            m_unitGrinder.switchMotorOff();
-            m_currentState = MachineState::BREWGROUP_INSERTION;
+        case MachineState::BREWGROUP_INSERTION:
+            Serial.print("BREWGROUP_INSERTION ");
+            // LOGICAL ERROR HERE
+            if (m_unitGrinder.isFinished()) {      
+                m_unitGrinder.openFlap();
+                m_grinderFlapOpenedTimestamp = millis();
+            }
+            // wait for 2 seconds so that coffee ground can slide into the brewchamber
+            if (m_unitGrinder.isOpen() && (millis() - m_grinderFlapOpenedTimestamp > 2000)) {
+                m_unitBrewGroup.moveDown();
+                m_currentState = MachineState::TAMPERING;
+            }
+            break;
+
+        case MachineState::TAMPERING:
+            Serial.print("TAMPERING ");
+            if (m_unitBrewGroup.isMoving()) {
+                m_unitBrewGroup.checkIfPressed();
+            }
+
+            if (m_unitBrewGroup.isPress() && m_unitThermoBlock.isSteadyState()) {
+                m_unitPump.setAmount(m_setVolume);
+                m_unitPump.tareScale();
+                m_unitPump.switchOn();
+                m_currentState = MachineState::EXTRACTION;
+            }
+            break;
+
+        case MachineState::EXTRACTION:
+            Serial.print("EXTRACTION ");
+            if (m_unitPump.isFinished()) {
+                m_unitPump.switchOff();
+                m_unitGrinder.closeFlap();
+                m_unitThermoBlock.stopPIDControl();
+                m_unitBrewGroup.moveUp();
+                m_currentState = MachineState::BREWGROUP_HOME;
+            }
+            else {
+                m_unitPump.updateScale();
+            }
+            break;
+
+        case MachineState::BREWGROUP_HOME:
+            Serial.print("BREWGROUP_HOME ");
+            // first home
+            if (m_unitBrewGroup.isMovingUp()) {
+            
+                m_unitBrewGroup.checkIfHomed();
+            }
+
+            if (m_unitBrewGroup.isHome()) {
+                m_unitBrewGroup.moveDown();
+                m_currentState = MachineState::RETURN_TO_IDLE;
+            }
+            break;
+
+        case MachineState::RETURN_TO_IDLE:
+            Serial.print("RETURN_TO_IDLE ");
+            if (m_unitBrewGroup.isMovingDown()) {
+                Serial.print("MOVING DOWN");
+                m_unitBrewGroup.checkIfOpened();
+            }
+
+            if (m_unitBrewGroup.isOpen() && m_unitGrinder.isClose() && m_unitPump.isOff()) {
+                m_currentMenuID = 1;
+                m_currentState = MachineState::IDLE;
+            }
+            break;
+
+        default:
+            break;
         }
-        break;
-
-    case MachineState::BREWGROUP_INSERTION:
-        Serial.print("BREWGROUP_INSERTION ");
-        // LOGICAL ERROR HERE
-        if (m_unitGrinder.isFinished()) {      
-            m_unitGrinder.openFlap();
-            m_grinderFlapOpenedTimestamp = millis();
-        }
-        // wait for 2 seconds so that coffee ground can slide into the brewchamber
-        if (m_unitGrinder.isOpen() && (millis() - m_grinderFlapOpenedTimestamp > 2000)) {
-            m_unitBrewGroup.moveDown();
-            m_currentState = MachineState::TAMPERING;
-        }
-        break;
-
-    case MachineState::TAMPERING:
-        Serial.print("TAMPERING ");
-        if (m_unitBrewGroup.isMoving()) {
-            m_unitBrewGroup.checkIfPressed();
-        }
-
-        if (m_unitBrewGroup.isPress() && m_unitThermoBlock.isSteadyState()) {
-            m_unitPump.setAmount(m_setVolume);
-            m_unitPump.tareScale();
-            m_unitPump.switchOn();
-            m_currentState = MachineState::EXTRACTION;
-        }
-        break;
-    
-    case MachineState::EXTRACTION:
-        Serial.print("EXTRACTION ");
-        if (m_unitPump.isFinished()) {
-            m_unitPump.switchOff();
-            m_unitGrinder.closeFlap();
-            m_unitThermoBlock.stopPIDControl();
-            m_unitBrewGroup.moveUp();
-            m_currentState = MachineState::BREWGROUP_HOME;
-        }
-        else {
-            m_unitPump.updateScale();
-        }
-        break;
-
-    case MachineState::BREWGROUP_HOME:
-        Serial.print("BREWGROUP_HOME ");
-        // first home
-        if (m_unitBrewGroup.isMovingUp()) {
-        
-            m_unitBrewGroup.checkIfHomed();
-        }
-
-        if (m_unitBrewGroup.isHome()) {
-            m_unitBrewGroup.moveDown();
-            m_currentState = MachineState::RETURN_TO_IDLE;
-        }
-        break;
-
-    case MachineState::RETURN_TO_IDLE:
-        Serial.print("RETURN_TO_IDLE ");
-        if (m_unitBrewGroup.isMovingDown()) {
-            Serial.print("MOVING DOWN");
-            m_unitBrewGroup.checkIfOpened();
-        }
-
-        if (m_unitBrewGroup.isOpen() && m_unitGrinder.isClose() && m_unitPump.isOff()) {
-            m_currentMenuID = 1;
-            m_currentState = MachineState::IDLE;
-        }
-        break;
-
-    default:
-        break;
     }
-
-
 }
 
 

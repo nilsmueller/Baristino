@@ -27,6 +27,6 @@ void loop() {
   myCoffeeMachine.updateSensors();
   myCoffeeMachine.printSensorValues();
   myCoffeeMachine.updateLCD();
-  myCoffeeMachine.updateMenuSelection();
+  //myCoffeeMachine.updateMenuSelection();
 }
 
