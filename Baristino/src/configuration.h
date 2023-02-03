@@ -46,6 +46,9 @@ namespace pindef {
     const int LCD_XM = A2;
     const int LCD_YP = A3;
     const int LCD_YM = 9;
+
+    // SD Card 
+    const int CHIP_SELECT = 53;
 }
 
 namespace config {
@@ -73,6 +76,9 @@ static const DeviceAddress DS18B20_ADDRESS[DS18B20_NUM_TEMPSENSORS] = {0x28, 0xB
 static const double GRINDER_LOADCELL_CALIBRATION_FACTOR = -1083.78536585;
 static const int STEPPER_STEPS_PER_REV = 2048;
 static const int STEPPER_RPM = 5;
+
+// SD Card Module
+static const char FILENAME[] = "BREW_PROCESS.txt";
 }
 
 enum class ErrorCode : uint8_t {

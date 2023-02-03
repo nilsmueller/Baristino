@@ -23,6 +23,8 @@ class RotaryEncoder{
         int16_t getTolerance();
         int16_t checkPositionValidity(int16_t targetPosition);
         void setOrigin();
+        void resetUpdateTimer(); 
+        unsigned long getLastUpdate();
 
     private:
         uint8_t m_pinA; // digital interrupt pin
@@ -36,9 +38,13 @@ class RotaryEncoder{
         int16_t m_encoderThreshB = 860;
         int16_t m_maxStep = 324;
 
+        int16_t m_lastPositions[10] = {0};
+
         static void isrUpdate();
         void updatePosition();
         static RotaryEncoder *instance;
+
+        unsigned long m_lastUpdate;
 };
 
 
@@ -98,10 +104,6 @@ class Ensemble {
         Ensemble(uint8_t pinMotor1, uint8_t pinMotor2, uint8_t pinMotorEN, uint8_t pinEncoderA, uint8_t pinEncoderB, uint8_t pinAmpMeter);
 
         void initialize();
-        void home();
-        void open();
-        void press();
-        void updatePosition();
         int16_t getPosition();
 
         bool isHome();
@@ -111,6 +113,7 @@ class Ensemble {
         bool isMoving();
         bool isMovingUp();
         bool isMovingDown();
+        bool isStalled();
         BGState State();
 
         void moveDown();
@@ -128,19 +131,17 @@ class Ensemble {
         RotaryEncoder m_encoder;
         AmpMeter m_ampmeter;
 
-        int16_t m_positionOpen = 111;
+        int16_t m_positionOpen = 105;
 
         double m_minCurrent = -2.4; // A // downward movement (positive step directio)
-        double m_maxCurrent = 2.3; // A // upward movement (negative step directio)
-        double m_minCurrentFromIdle = -3.5;
-        double m_maxCurrentFromIdle = 3.5;
+        double m_maxCurrent = 2.2; // A // upward movement (negative step directio)
 
         // FSM
         BGState m_currentState = BGState::IDLE;
         BGState m_lastState = BGState::IDLE;
 
-        void moveToPosition(int16_t position);
-        
+        unsigned long m_stallTimeout = 500;
+        bool hasPositionChanged();
 };
 
 }; // namespace BrewGroup

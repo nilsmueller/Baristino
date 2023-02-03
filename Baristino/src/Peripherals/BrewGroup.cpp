@@ -1,5 +1,6 @@
 #include "BrewGroup.h"
 
+// typename template this and use in isCurrentNominal
 bool inRange(int16_t value, int16_t lowerBound, int16_t upperBound) {
     if (value >= lowerBound && value <= upperBound) {
         return true;
@@ -27,36 +28,36 @@ void Ensemble::initialize() {
 
 
 void Ensemble::moveDown() {
+    m_encoder.resetUpdateTimer();
     m_motor.rotate(true);
     m_currentState = BGState::MOVINGDOWN;
 }
 
+
 void Ensemble::moveUp() {
+    m_encoder.resetUpdateTimer();
     m_motor.rotate(false);
     m_currentState = BGState::MOVINGUP;
 }
 
 
 bool Ensemble::checkIfPressed() {
-    if (isMovingDown() && !isCurrentNominal()) {
+    if (isStalled()) {
         m_motor.stop();
         m_currentState = BGState::PRESSED;
+        Serial.print("BrewGroup Pressed!");
         return true;
-
-        // if position is somewhere around the desired position
-        // return true
-        // else false (motor stalled!)
     }
     return false;
 }
 
 
 bool Ensemble::checkIfHomed() {
-    if (isMovingUp() && !isCurrentNominal()) {
+    if (isStalled()) {
         m_motor.stop();
         m_currentState = BGState::HOMED;
         m_encoder.setOrigin();
-        Serial.print("BrewGroup Homed Successfully");
+        Serial.print("BrewGroup Homed!");
         return true;
     }
     return false;
@@ -65,7 +66,8 @@ bool Ensemble::checkIfHomed() {
 
 bool Ensemble::checkIfOpened() {
     if (isMovingDown()) {
-        if (inRange(m_encoder.getPosition(), m_positionOpen-m_encoder.getTolerance(), m_positionOpen+m_encoder.getTolerance())) {
+        if (m_encoder.getPosition() >= m_positionOpen-m_encoder.getTolerance()) { 
+            //inRange(m_encoder.getPosition(), m_positionOpen-m_encoder.getTolerance(), m_positionOpen+m_encoder.getTolerance())) {
             m_motor.stop();
             m_lastState = m_currentState;
             m_currentState = BGState::OPENED;
@@ -76,48 +78,13 @@ bool Ensemble::checkIfOpened() {
 }
 
 
-
-void Ensemble::home() {
-    if (m_currentState == BGState::IDLE || m_currentState == BGState::OPENED || m_currentState ==  BGState::PRESSED) {
-        
-        while (isCurrentNominal()) {
-            m_motor.rotate(false);
-            Serial.print("HOME AMPS : ");
-            Serial.print(m_ampmeter.readCurrent());
-            Serial.print("  POS : ");
-            Serial.println(m_encoder.getPosition());
-            delay(10);
-        }
-        m_motor.stop();
-        m_encoder.setOrigin();
-        m_lastState = m_currentState;
-        m_currentState = BGState::HOMED;
-        Serial.print("BrewGroup Homed successfully!");
+bool Ensemble::isStalled() {
+    if (isMoving() && !isCurrentNominal() && !hasPositionChanged()) {
+        return true;
     }
+    return false;
 }
 
-
-
-// BLOCKING
-void Ensemble::open() {
-    moveToPosition(m_positionOpen);
-    m_lastState = m_currentState;
-    m_currentState = BGState::OPENED;
-}
-
-void Ensemble::press() {
-    //moveToPosition(m_positionPress);
-    while (isCurrentNominal()) {;
-        m_motor.rotate(true);
-        Serial.print("PRESS AMPS : ");
-        Serial.print(m_ampmeter.readCurrent());
-        Serial.print("  POS : ");
-        Serial.println(m_encoder.getPosition());
-        delay(10);
-    }
-    m_motor.stop();
-    m_currentState = BGState::PRESSED;
-}
 
 
 int16_t Ensemble::getPosition() {
@@ -140,15 +107,17 @@ BGState Ensemble::State() {return m_currentState;}
 bool Ensemble::isCurrentNominal()
 {
     double current = m_ampmeter.readCurrent();
-
-    if (isIdle()) {
-        return (current >= m_minCurrentFromIdle && current < m_maxCurrentFromIdle) ? true : false;
-    }
-    else {
-        return (current >= m_minCurrent && current < m_maxCurrent) ? true : false;
-    }
     
-    return false;
+    if (current <= m_minCurrent || current >= m_maxCurrent) {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool Ensemble::hasPositionChanged() {
+    return ((millis() - m_encoder.getLastUpdate()) <= m_stallTimeout);
 }
 
 
@@ -210,6 +179,13 @@ void RotaryEncoder::updatePosition()
     }
 
     m_lastEncoderStateA = m_encoderStateA;
+
+    m_lastUpdate = millis();
+}
+
+
+void RotaryEncoder::resetUpdateTimer() {
+    m_lastUpdate = millis();
 }
 
 
@@ -237,6 +213,11 @@ int16_t RotaryEncoder::checkPositionValidity(int16_t targetPosition) {
         pos = targetPosition;
     }
     return pos;
+}
+
+
+unsigned long RotaryEncoder::getLastUpdate() {
+    return m_lastUpdate;
 }
 
 

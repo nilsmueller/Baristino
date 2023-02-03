@@ -59,6 +59,9 @@ class PIDHeater{
   void startPIDControl();
   void stopPIDControl();
   void watchPIDControl();
+  double getPIDinput();
+  double getPIDsetpoint();
+  double getPIDouput();
 
   // Temperature Sensor
   double getTemperature();
