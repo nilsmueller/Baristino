@@ -47,7 +47,6 @@ class CoffeeMachine {
         void updateSensors();
         void printSensorValues();
         void updateLCD();
-        void updateMenuSelection();
 
 
     private:
@@ -75,8 +74,9 @@ class CoffeeMachine {
 
         unsigned long m_grinderFlapOpenedTimestamp;
 
+        File m_file;
         bool m_SDCardEnabled = false;
-        void writeToSD();
+        void writeToFile();
 };
 
 #endif

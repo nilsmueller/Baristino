@@ -48,7 +48,7 @@ namespace pindef {
     const int LCD_YM = 9;
 
     // SD Card 
-    const int CHIP_SELECT = 10;
+    const int CHIP_SELECT = 53;
 }
 
 namespace config {

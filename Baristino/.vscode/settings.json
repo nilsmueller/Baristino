@@ -1,0 +1,59 @@
+{
+  "C_Cpp_Runner.cCompilerPath": "/Users/NilsMueller/.platformio/packages/toolchain-atmelavr/bin/avr-gcc",
+  "C_Cpp_Runner.cppCompilerPath": "/Users/NilsMueller/.platformio/packages/toolchain-atmelavr/bin/avr-g++",
+  "C_Cpp_Runner.debuggerPath": "/Users/NilsMueller/.platformio/packages/toolchain-atmelavr/bin/avr-gdb",
+  "C_Cpp_Runner.cStandard": "c11",
+  "C_Cpp_Runner.cppStandard": "c++11",
+  "C_Cpp_Runner.msvcBatchPath": "",
+  "C_Cpp_Runner.useMsvc": false,
+  "C_Cpp_Runner.warnings": [
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Wshadow",
+    "-Wformat=2",
+    "-Wconversion",
+    "-Wnull-dereference",
+    "-Wsign-conversion"
+  ],
+  "C_Cpp_Runner.enableWarnings": true,
+  "C_Cpp_Runner.warningsAsError": false,
+  "C_Cpp_Runner.compilerArgs": [],
+  "C_Cpp_Runner.linkerArgs": [],
+  "C_Cpp_Runner.includePaths": [
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/include",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/src",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/SD",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/HX711/src",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Stepper/src",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Adafruit TouchScreen",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/MCUFRIEND_kbv",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/MCUFRIEND_kbv/utility",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Adafruit GFX Library",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Adafruit BusIO",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/TimerOne",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/DallasTemperature",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/OneWire",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/cores/arduino",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/variants/mega",
+    "/Users/NilsMueller/Documents/PlatformIO/Projects/Baristino/.pio/libdeps/megaatmega2560/Unity/src",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/libraries/HID/src",
+    "/Users/NilsMueller/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
+    ""
+  ],
+  "C_Cpp_Runner.includeSearch": [
+    "*",
+    "**/*"
+  ],
+  "C_Cpp_Runner.excludeSearch": [
+    "**/build",
+    "**/build/**",
+    "**/.*",
+    "**/.*/**",
+    "**/.vscode",
+    "**/.vscode/**"
+  ]
+}

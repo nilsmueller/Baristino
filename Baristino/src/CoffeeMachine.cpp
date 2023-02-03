@@ -20,9 +20,13 @@ void CoffeeMachine::initialize() {
     m_unitGrinder.initialize();
     m_unitBrewGroup.initialize();
 
+    
     if (SD.begin(pindef::CHIP_SELECT)) {
         m_SDCardEnabled = true;
         Serial.println("SD Card is present and ready.");
+    }
+    else {
+        Serial.println("ERROR : SD Card can not be found");
     }
 }
 
@@ -40,6 +44,11 @@ void CoffeeMachine::warmup() {
     m_unitThermoBlock.setTemperature(config::TEMP_WARMUP);
     m_unitThermoBlock.startPIDControl();
 
+    if (m_SDCardEnabled) {
+        m_file = SD.open("warmup03.txt", FILE_WRITE);
+        m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
+    }
+
     double progress;    
     while (!m_unitThermoBlock.isSteadyState()) {
         m_unitThermoBlock.update();
@@ -53,9 +62,18 @@ void CoffeeMachine::warmup() {
         Serial.print(" / ");
         Serial.print(config::TEMP_WARMUP);
         Serial.print(" [°C] ");
-        m_unitThermoBlock.watchPIDControl();
+        Serial.print(" | Position : ");
+        Serial.print(m_unitBrewGroup.getPosition());
+        Serial.print(" | Current : ");
+        Serial.print(m_unitBrewGroup.getCurrent());
         Serial.println();
+
+        writeToFile();
         delay(10);
+    }
+
+    if (m_SDCardEnabled) {
+        m_file.close();
     }
     
     // home brew group
@@ -66,9 +84,9 @@ void CoffeeMachine::warmup() {
         Serial.println(m_unitBrewGroup.getCurrent());
         m_unitBrewGroup.checkIfHomed();
     }
-    delay(4000);
 
-    Serial.println("BREWGORUP_OPENING");
+    delay(4000);
+    Serial.println("BREWGROUP_OPENING");
     // open brew group
     m_unitBrewGroup.moveDown();
     while (m_unitBrewGroup.isMovingDown()) {
@@ -79,6 +97,7 @@ void CoffeeMachine::warmup() {
 
     LCD::drawMainMenu();
 }
+
 
 
 void CoffeeMachine::updateSensors() {
@@ -98,15 +117,15 @@ void CoffeeMachine::updateSensors() {
 
 
 void CoffeeMachine::printSensorValues() {
-    Serial.print(" TB_Temp : ");
+    Serial.print(" | TB_Temp : ");
     Serial.print(m_currentTemperature);
-    Serial.print(", GR_Amount : ");
+    Serial.print(" | GR_Amount : ");
     Serial.print(m_currentQuantity);
-    Serial.print(", WC_Volume : ");
+    Serial.print(" | WC_Volume : ");
     Serial.print(m_currentVolume);
-    Serial.print("   BG_Position : ");
+    Serial.print(" | BG_Position : ");
     Serial.print(m_brewGroupPosition);
-    Serial.print("   BG_Current : ");
+    Serial.print(" | BG_Current : ");
     Serial.print(m_brewGroupCurrent);
     Serial.println();
 }
@@ -126,9 +145,15 @@ void CoffeeMachine::makeCoffee() {
     if (m_newMenuID == 11) {
         m_unitThermoBlock.update();
 
+
         switch (m_currentState)
         {
         case MachineState::IDLE:
+            // SD TEST 
+            if (m_SDCardEnabled) {
+                m_file = SD.open("brew03.txt", FILE_WRITE);
+                m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
+            }
             m_unitThermoBlock.setTemperature(m_setTemperature);
             m_unitThermoBlock.startPIDControl();
             m_currentState = MachineState::HEATING;
@@ -187,6 +212,11 @@ void CoffeeMachine::makeCoffee() {
                 m_unitGrinder.closeFlap();
                 m_unitThermoBlock.stopPIDControl();
                 m_unitBrewGroup.moveUp();
+
+                    if (m_SDCardEnabled) {
+                        m_file.close();
+                    }
+
                 m_currentState = MachineState::BREWGROUP_HOME;
             }
             else {
@@ -198,7 +228,6 @@ void CoffeeMachine::makeCoffee() {
             Serial.print("BREWGROUP_HOME ");
             // first home
             if (m_unitBrewGroup.isMovingUp()) {
-            
                 m_unitBrewGroup.checkIfHomed();
             }
 
@@ -216,14 +245,21 @@ void CoffeeMachine::makeCoffee() {
             }
 
             if (m_unitBrewGroup.isOpen() && m_unitGrinder.isClose() && m_unitPump.isOff()) {
-                m_currentMenuID = 1;
+                m_newMenuID = 0;
                 m_currentState = MachineState::IDLE;
+                changeMenu();
+            }
+
+            if (m_SDCardEnabled) {
+                m_file.close();
             }
             break;
 
         default:
             break;
         }
+
+        writeToFile();
     }
 }
 
@@ -296,28 +332,25 @@ void CoffeeMachine::updateLCD() {
 
 void CoffeeMachine::writeToFile() {
     if (m_SDCardEnabled) {
-        m_myFile = SD.open(config::FILENAME, FILE_WRITE);
-
-        if (m_myFile) {
-            m_myFile.print(millis());
-            m_myFile.print(",");
-            m_myFile.print(m_currentTemperature);
-            m_myFile.print(",");
-            m_myFile.print(m_unitThermoBlock.getPIDsetpoint());
-            m_myFile.print(",");
-            m_myFile.print(m_unitThermoBlock.getPIDinput());
-            m_myFile.print(",");
-            m_myFile.print(m_unitThermoBlock.getPIDouput());
-            m_myFile.print(",");
-            m_myFile.print(m_currentQuantity);
-            m_myFile.print(",");
-            m_myFile.print(m_currentVolume);
-            m_myFile.println();
+        if (m_file) {
+            m_file.print(millis());
+            m_file.print(",");
+            m_file.print(m_currentTemperature);
+            m_file.print(",");
+            m_file.print(m_unitThermoBlock.getPIDsetpoint());
+            m_file.print(",");
+            m_file.print(m_unitThermoBlock.getPIDinput());
+            m_file.print(",");
+            m_file.print(m_unitThermoBlock.getPIDouput());
+            m_file.print(",");
+            m_file.print(m_currentQuantity);
+            m_file.print(",");
+            m_file.print(m_currentVolume);
+            m_file.println();
         }
         else {
             Serial.println("Error opening File");
         }
-
     }
 }
 
