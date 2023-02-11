@@ -16,6 +16,7 @@ int cProgBarW3 = cProgBarWInner - cProgBarW1 - cProgBarW2;
 
 uint16_t makeCoffeeScreenID = 11;
 
+
 void drawMakeCoffeeScreen() {
     drawEmptyScreen();
     
@@ -46,36 +47,36 @@ void drawMakeCoffeeScreen() {
 }
 
 
-uint16_t updateMakeCoffeeScreen(double setTemp, double setVol, double setQty, double curTemp, double curVol, double curQty) {
+uint16_t updateMakeCoffeeScreen(BrewParam *process) {
 
-    double p1 = max(0, min(1, setTemp - abs(setTemp - curTemp) / setTemp));
+    double p1 = max(0, min(1, process->set_temperature - abs(process->set_temperature - process->current_temperature) / process->set_temperature));
     //prog = 1 - max(0, min(1, abs((target_temp - current_temp) / (target_temp - start_temp))))
-    double p2 = max(0, min(1, curVol / setVol));
-    double p3 = max(0, min(1, curQty / setQty));
+    double p2 = max(0, min(1, process->current_volume / process->set_volume));
+    double p3 = max(0, min(1, process->current_dose / process->set_dose));
 
     // temperature
     tft.setTextSize(3);
     tft.setTextColor(myORANGE, myBLACK);
     tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 10, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
-    tft.print(curTemp);
+    tft.print(process->current_temperature);
     tft.print(" / ");
-    tft.print((int)setTemp);
+    tft.print((int)process->set_temperature);
 
     // volume
     tft.setTextSize(3);
     tft.setTextColor(myBLUE, myBLACK);
     tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 10, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
-    tft.print(curVol);
+    tft.print(process->current_volume);
     tft.print(" / ");
-    tft.print((int)setVol);
+    tft.print((int)process->set_volume);
 
     // quantity
     tft.setTextSize(3);
     tft.setTextColor(myYELLOW, myBLACK);
     tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 10, LCD_MAIN_ORIGIN_Y + 15*LCD_PAD + 20);
-    tft.print(curQty);
+    tft.print(process->current_dose);
     tft.print(" / ");
-    tft.print((int)setQty);
+    tft.print((int)process->set_dose);
 
 
     int w1 = (int)(p1 * cProgBarW1) - 2;

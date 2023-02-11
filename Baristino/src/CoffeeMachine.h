@@ -8,13 +8,13 @@
 #endif
 
 struct BrewParam {
-    float set_temperature;
-    float set_volume;
-    float set_dose;
+    double set_temperature = 93.0f;
+    double set_volume = 150.0f;
+    double set_dose = 12.0f;
 
-    float current_temperature;
-    float current_volume;
-    float current_dose;
+    double current_temperature;
+    double current_volume;
+    double current_dose;
 };
 
 
@@ -69,20 +69,12 @@ class CoffeeMachine {
         Grinder::Hopper m_unitGrinder;
         BrewGroup::Ensemble m_unitBrewGroup;
 
-        double m_setVolume = 150.0;
-        double m_setTemperature = 95.0;
-        double m_setQuantity = 10.0;
-        double m_currentVolume = 0.0;
-        double m_currentTemperature;
-        double m_currentQuantity;
-
         int16_t m_brewGroupPosition;
         double m_brewGroupCurrent;
 
         // Menu
         uint8_t m_currentMenuID = 0; // ID of the current Menu
         uint16_t m_newMenuID = 0;     // variable that stores the ID of a potential new Menu
-        long m_lastTouch = millis();
         void changeMenu();
 
         MachineState m_currentState = MachineState::IDLE;
@@ -92,8 +84,6 @@ class CoffeeMachine {
         File m_file;
         bool m_SDCardEnabled = false;
         bool m_fileOpen = false;
-
-        unsigned long m_eggTimerStart;
 
 
         BrewParam m_brewParam;

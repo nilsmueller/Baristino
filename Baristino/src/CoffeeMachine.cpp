@@ -56,13 +56,13 @@ void CoffeeMachine::warmup() {
     double progress;    
     while (!m_unitThermoBlock.isSteadyState()) {
         m_unitThermoBlock.update();
-        m_currentTemperature = m_unitThermoBlock.getTemperature();
-        progress = (config::TEMP_WARMUP - abs(config::TEMP_WARMUP - m_currentTemperature)) / config::TEMP_WARMUP;
+        m_brewParam.current_temperature = m_unitThermoBlock.getTemperature();
+        progress = (config::TEMP_WARMUP - abs(config::TEMP_WARMUP - m_brewParam.current_temperature)) / config::TEMP_WARMUP;
         LCD::updateWarmUpScreen(progress);
 
         // print status
         Serial.print("WARMUP - Temp = ");
-        Serial.print(m_currentTemperature);
+        Serial.print(m_brewParam.current_temperature);
         Serial.print(" / ");
         Serial.print(config::TEMP_WARMUP);
         Serial.print(" [°C] ");
@@ -135,25 +135,17 @@ void CoffeeMachine::updateBrewGroup() {
     m_brewGroupCurrent = m_unitBrewGroup.getCurrent();
 }
 
+void CoffeeMachine::resetBrewParam() {
+    m_brewParam.current_volume = 0.0f;
+    m_brewParam.current_dose = 0.0f;
+}
+
+
 void CoffeeMachine::updateSensors() {
     updateTemperature();
     updateVolume();
     updateDose();
     updateBrewGroup();
-    /*
-    m_unitPump.updateScale();
-    m_currentVolume = m_unitPump.getCurrentAmount();
-    
-    m_unitGrinder.updateScale();
-    m_currentQuantity = m_unitGrinder.getCurrentAmount();
-
-    m_unitThermoBlock.update();
-    m_currentTemperature = m_unitThermoBlock.getTemperature();
-
-    //m_unitBrewGroup.updatePosition();
-    m_brewGroupPosition = m_unitBrewGroup.getPosition();
-    m_brewGroupCurrent = m_unitBrewGroup.getCurrent();
-    */
 }
 
 
@@ -161,11 +153,11 @@ void CoffeeMachine::updateSensors() {
 
 void CoffeeMachine::printSensorValues() {
     Serial.print(" | TB_Temp : ");
-    Serial.print(m_currentTemperature);
+    Serial.print(m_brewParam.current_temperature);
     Serial.print(" | GR_Amount : ");
-    Serial.print(m_currentQuantity);
+    Serial.print(m_brewParam.current_dose);
     Serial.print(" | WC_Volume : ");
-    Serial.print(m_currentVolume);
+    Serial.print(m_brewParam.current_volume);
     Serial.print(" | BG_Position : ");
     Serial.print(m_brewGroupPosition);
     Serial.print(" | BG_Current : ");
@@ -178,7 +170,6 @@ void CoffeeMachine::printSensorValues() {
 void CoffeeMachine::makeCoffee() {
     if (m_newMenuID == 11) {
         m_unitThermoBlock.update();
-        updateBrewParam();
 
 
         switch (m_currentState)
@@ -187,27 +178,21 @@ void CoffeeMachine::makeCoffee() {
             // SD TEST 
             resetBrewParam();
 
-            // remove this later
-            m_brewParam.setTemperature = m_setTemperature;
-            m_brewParam.setVolume = m_setVolume;
-            m_brewParam.setQuantity = m_setQuantity;
-            m_brewParam.startTemp = m_currentTemperature;
-
             if (m_SDCardEnabled) {
                 char filename[17];
                 generateBrewFileName(filename);
                 Serial.println(filename);
                 m_file = SD.open(filename, FILE_WRITE);
-                writeHeader(&m_file, m_setTemperature, m_setVolume, m_setQuantity);
+                writeHeader(&m_file, &m_brewParam);
                 m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
             }
-            m_unitThermoBlock.setTemperature(m_setTemperature);
+            m_unitThermoBlock.setTemperature(m_brewParam.set_temperature);
             m_unitThermoBlock.startPIDControl();
             m_currentState = MachineState::HEATING;
             break;
 
         case MachineState::HEATING:
-            m_unitGrinder.setDose(m_setQuantity);
+            m_unitGrinder.setDose(m_brewParam.set_dose);
             m_unitGrinder.tareScale();
             m_unitGrinder.switchMotorOn();
             m_currentState = MachineState::GRINDING;
@@ -215,7 +200,6 @@ void CoffeeMachine::makeCoffee() {
 
         case MachineState::GRINDING:
             m_unitGrinder.updateScale();
-            m_brewParam.dispQuantity = m_currentQuantity;
 
             if (m_unitGrinder.isFinished()) {
                 m_unitGrinder.switchMotorOff();
@@ -243,7 +227,7 @@ void CoffeeMachine::makeCoffee() {
             }
 
             if (m_unitBrewGroup.isPress() && m_unitThermoBlock.isSteadyState()) {
-                m_unitPump.setAmount(m_setVolume);
+                m_unitPump.setAmount(m_brewParam.set_volume);
                 //
                 m_unitThermoBlock.stopPIDControl();
                 m_unitThermoBlock.powerOn();
@@ -320,7 +304,7 @@ void CoffeeMachine::changeMenu() {
                 LCD::drawMainMenu();
                 break;
             case 1:
-                LCD::drawCoffeeMenu(&m_setVolume, &m_setTemperature, &m_setQuantity);
+                LCD::drawCoffeeMenu();
                 break;
             case 11:
                 LCD::drawMakeCoffeeScreen();
@@ -358,10 +342,10 @@ void CoffeeMachine::updateLCD() {
             m_newMenuID = LCD::updateMainMenu();
             break;
         case 1:
-            m_newMenuID = LCD::updateCoffeeMenu(&m_setVolume, &m_setTemperature, &m_setQuantity);
+            m_newMenuID = LCD::updateCoffeeMenu(&m_brewParam);
             break;
         case 11:
-            m_newMenuID = LCD::updateMakeCoffeeScreen(m_setTemperature, m_setVolume, m_setQuantity, m_brewParam.dispTemperature, m_brewParam.dispVolume, m_brewParam.dispQuantity);
+            m_newMenuID = LCD::updateMakeCoffeeScreen(&m_brewParam);
             makeCoffee();
             break;
         case 3:
@@ -394,7 +378,7 @@ void CoffeeMachine::writeToFile() {
         if (m_file) {
             m_file.print(millis());
             m_file.print(",");
-            m_file.print(m_currentTemperature);
+            m_file.print(m_brewParam.current_temperature);
             m_file.print(",");
             m_file.print(m_unitThermoBlock.getPIDsetpoint());
             m_file.print(",");
@@ -402,9 +386,9 @@ void CoffeeMachine::writeToFile() {
             m_file.print(",");
             m_file.print(m_unitThermoBlock.getPIDouput());
             m_file.print(",");
-            m_file.print(m_currentQuantity);
+            m_file.print(m_brewParam.current_dose);
             m_file.print(",");
-            m_file.print(m_currentVolume);
+            m_file.print(m_brewParam.current_volume);
             m_file.println();
         }
         else {

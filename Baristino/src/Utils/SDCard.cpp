@@ -172,13 +172,13 @@ void generateStepFileName(char *filename) {
 }
 
 
-void writeHeader(File *file, double setTemp, double setVol, double setQty) {
+void writeHeader(File *file, BrewParam *brewParameter) {
   file->print("set_temperature,");
-  file->println(setTemp);
+  file->println(brewParameter->set_temperature);
   file->print("set_volume,");
-  file->println(setVol);
-  file->print("set_quantity,");
-  file->println(setQty);
+  file->println(brewParameter->set_volume);
+  file->print("set_dose,");
+  file->println(brewParameter->set_dose);
 }
 
 
