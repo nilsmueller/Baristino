@@ -122,6 +122,10 @@ void PIDHeater::power(double percentage) {
 }
 
 
+double PIDHeater::getCurrentPower() {
+  return m_SSR.getDutyCycle();
+}
+
 
 double PIDHeater::getTemperature() {
   return m_currentTemperature;

@@ -1,7 +1,6 @@
 #include "CoffeeMachine.h"
 
 
-
 // Constructor with member init
 CoffeeMachine::CoffeeMachine() :
 m_unitThermoBlock(pindef::SSR_THERMOBLOCK, pindef::DS18B20_THERMOBLOCK),
@@ -28,6 +27,8 @@ void CoffeeMachine::initialize() {
     else {
         Serial.println("ERROR : SD Card can not be found");
     }
+
+    //LCD::drawMainMenu();
 }
 
 
@@ -45,7 +46,10 @@ void CoffeeMachine::warmup() {
     m_unitThermoBlock.startPIDControl();
 
     if (m_SDCardEnabled) {
-        m_file = SD.open("warmup03.txt", FILE_WRITE);
+        char filename[17];
+        generateWarmupFileName(filename);
+        Serial.println(filename);
+        m_file = SD.open(filename, FILE_WRITE);
         m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
     }
 
@@ -85,13 +89,15 @@ void CoffeeMachine::warmup() {
         m_unitBrewGroup.checkIfHomed();
     }
 
-    delay(4000);
+    delay(2000);
     Serial.println("BREWGROUP_OPENING");
     // open brew group
     m_unitBrewGroup.moveDown();
     while (m_unitBrewGroup.isMovingDown()) {
         Serial.print("Amps : ");
-        Serial.println(m_unitBrewGroup.getCurrent());
+        Serial.print(m_unitBrewGroup.getCurrent());
+        Serial.print("   Pos : ");
+        Serial.println(m_unitBrewGroup.getPosition());
         m_unitBrewGroup.checkIfOpened();
     }
 
@@ -99,11 +105,45 @@ void CoffeeMachine::warmup() {
 }
 
 
+void CoffeeMachine::updateTemperature() {
+    m_unitThermoBlock.update();
+    m_brewParam.current_temperature = m_unitThermoBlock.getTemperature();
+}
+
+void CoffeeMachine::updateVolume() {
+    if (m_currentState == MachineState::TAMPERING || m_currentState == MachineState::EXTRACTION) {
+        m_unitPump.updateScale();
+        m_brewParam.current_volume = m_unitPump.getCurrentAmount();
+    }
+    else {
+        m_brewParam.current_volume = 0.0f;
+    }
+}
+
+void CoffeeMachine::updateDose() {
+    if (m_currentState == MachineState::GRINDING) {
+        m_unitGrinder.updateScale();
+        m_brewParam.current_dose = m_unitGrinder.getCurrentAmount();
+    }
+    else {
+        m_brewParam.current_dose = 0.0f;
+    }
+}
+
+void CoffeeMachine::updateBrewGroup() {
+    m_brewGroupPosition = m_unitBrewGroup.getPosition();
+    m_brewGroupCurrent = m_unitBrewGroup.getCurrent();
+}
 
 void CoffeeMachine::updateSensors() {
+    updateTemperature();
+    updateVolume();
+    updateDose();
+    updateBrewGroup();
+    /*
     m_unitPump.updateScale();
     m_currentVolume = m_unitPump.getCurrentAmount();
-
+    
     m_unitGrinder.updateScale();
     m_currentQuantity = m_unitGrinder.getCurrentAmount();
 
@@ -113,7 +153,10 @@ void CoffeeMachine::updateSensors() {
     //m_unitBrewGroup.updatePosition();
     m_brewGroupPosition = m_unitBrewGroup.getPosition();
     m_brewGroupCurrent = m_unitBrewGroup.getCurrent();
+    */
 }
+
+
 
 
 void CoffeeMachine::printSensorValues() {
@@ -133,25 +176,29 @@ void CoffeeMachine::printSensorValues() {
 
 // ASSUMPTIONS: BREWGROUP IS HOMED AND OPEN, GRINDER FLAS IS HOMED AND CLOSED
 void CoffeeMachine::makeCoffee() {
-    /*
-    // check the necessary pre-conditions
-    if(!m_unitPump.isOff() || !m_unitBrewGroup.isOpen() || !m_unitGrinder.isClose() ){
-        m_unitPump.switchOff();
-        // LOGICAL ERROR HERE
-        m_unitBrewGroup.open();
-        m_unitGrinder.closeFlap();
-    }
-    */
     if (m_newMenuID == 11) {
         m_unitThermoBlock.update();
+        updateBrewParam();
 
 
         switch (m_currentState)
         {
         case MachineState::IDLE:
             // SD TEST 
+            resetBrewParam();
+
+            // remove this later
+            m_brewParam.setTemperature = m_setTemperature;
+            m_brewParam.setVolume = m_setVolume;
+            m_brewParam.setQuantity = m_setQuantity;
+            m_brewParam.startTemp = m_currentTemperature;
+
             if (m_SDCardEnabled) {
-                m_file = SD.open("brew03.txt", FILE_WRITE);
+                char filename[17];
+                generateBrewFileName(filename);
+                Serial.println(filename);
+                m_file = SD.open(filename, FILE_WRITE);
+                writeHeader(&m_file, m_setTemperature, m_setVolume, m_setQuantity);
                 m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
             }
             m_unitThermoBlock.setTemperature(m_setTemperature);
@@ -160,7 +207,6 @@ void CoffeeMachine::makeCoffee() {
             break;
 
         case MachineState::HEATING:
-            Serial.print("HEATING ");
             m_unitGrinder.setDose(m_setQuantity);
             m_unitGrinder.tareScale();
             m_unitGrinder.switchMotorOn();
@@ -168,8 +214,8 @@ void CoffeeMachine::makeCoffee() {
             break;
 
         case MachineState::GRINDING:
-            Serial.print("GRINDING ");
             m_unitGrinder.updateScale();
+            m_brewParam.dispQuantity = m_currentQuantity;
 
             if (m_unitGrinder.isFinished()) {
                 m_unitGrinder.switchMotorOff();
@@ -178,7 +224,6 @@ void CoffeeMachine::makeCoffee() {
             break;
 
         case MachineState::BREWGROUP_INSERTION:
-            Serial.print("BREWGROUP_INSERTION ");
             // LOGICAL ERROR HERE
             if (m_unitGrinder.isFinished()) {      
                 m_unitGrinder.openFlap();
@@ -187,28 +232,33 @@ void CoffeeMachine::makeCoffee() {
             // wait for 2 seconds so that coffee ground can slide into the brewchamber
             if (m_unitGrinder.isOpen() && (millis() - m_grinderFlapOpenedTimestamp > 2000)) {
                 m_unitBrewGroup.moveDown();
+                m_unitPump.tareScale();
                 m_currentState = MachineState::TAMPERING;
             }
             break;
 
         case MachineState::TAMPERING:
-            Serial.print("TAMPERING ");
             if (m_unitBrewGroup.isMoving()) {
                 m_unitBrewGroup.checkIfPressed();
             }
 
             if (m_unitBrewGroup.isPress() && m_unitThermoBlock.isSteadyState()) {
                 m_unitPump.setAmount(m_setVolume);
-                m_unitPump.tareScale();
+                //
+                m_unitThermoBlock.stopPIDControl();
+                m_unitThermoBlock.powerOn();
+                //
                 m_unitPump.switchOn();
                 m_currentState = MachineState::EXTRACTION;
             }
             break;
 
         case MachineState::EXTRACTION:
-            Serial.print("EXTRACTION ");
             if (m_unitPump.isFinished()) {
                 m_unitPump.switchOff();
+                //
+                m_unitThermoBlock.powerOff();
+                //
                 m_unitGrinder.closeFlap();
                 m_unitThermoBlock.stopPIDControl();
                 m_unitBrewGroup.moveUp();
@@ -225,7 +275,6 @@ void CoffeeMachine::makeCoffee() {
             break;
 
         case MachineState::BREWGROUP_HOME:
-            Serial.print("BREWGROUP_HOME ");
             // first home
             if (m_unitBrewGroup.isMovingUp()) {
                 m_unitBrewGroup.checkIfHomed();
@@ -238,9 +287,7 @@ void CoffeeMachine::makeCoffee() {
             break;
 
         case MachineState::RETURN_TO_IDLE:
-            Serial.print("RETURN_TO_IDLE ");
             if (m_unitBrewGroup.isMovingDown()) {
-                Serial.print("MOVING DOWN");
                 m_unitBrewGroup.checkIfOpened();
             }
 
@@ -266,21 +313,26 @@ void CoffeeMachine::makeCoffee() {
 
 
 
-
 void CoffeeMachine::changeMenu() {
     if (m_currentMenuID != m_newMenuID) {
         switch (m_newMenuID) {
             case 0:
                 LCD::drawMainMenu();
-                //m_process = Process::NONE;
                 break;
             case 1:
                 LCD::drawCoffeeMenu(&m_setVolume, &m_setTemperature, &m_setQuantity);
                 break;
             case 11:
+                LCD::drawMakeCoffeeScreen();
                 break;
             case 3:
                 LCD::drawControlMenu();
+                break;
+            case 31:
+                LCD::drawThermoControlMenu();
+                break;
+            case 38:
+                LCD::drawStepResponseMenu(m_unitThermoBlock, m_unitPump);
                 break;
             case 33:
                 //LCD::drawGrinderControlMenu(&m_grinderState, &m_setQuantity, &m_currentQuantity);
@@ -309,10 +361,17 @@ void CoffeeMachine::updateLCD() {
             m_newMenuID = LCD::updateCoffeeMenu(&m_setVolume, &m_setTemperature, &m_setQuantity);
             break;
         case 11:
+            m_newMenuID = LCD::updateMakeCoffeeScreen(m_setTemperature, m_setVolume, m_setQuantity, m_brewParam.dispTemperature, m_brewParam.dispVolume, m_brewParam.dispQuantity);
             makeCoffee();
             break;
         case 3:
             m_newMenuID = LCD::updateControlMenu();
+            break;
+        case 31:
+            m_newMenuID = LCD::updateThermoControlMenu();
+            break;
+        case 38:
+            m_newMenuID = LCD::updateStepResponseMenu(m_unitThermoBlock, m_unitPump);
             break;
         case 33:
             //m_newMenuID = LCD::updateGrinderControlMenu(&m_grinderState, &m_setQuantity, &m_currentQuantity);
@@ -355,3 +414,27 @@ void CoffeeMachine::writeToFile() {
 }
 
 
+
+void CoffeeMachine::createStepResponse(double stepPower, bool waterFlow) {
+    
+    if (m_SDCardEnabled && !m_fileOpen) {
+        char filename[12];
+        generateStepFileName(filename);
+        m_file = SD.open(filename, FILE_WRITE);
+        m_fileOpen = true;
+    }
+
+    
+    m_unitThermoBlock.power(stepPower);
+
+    if (waterFlow) {
+        m_unitPump.switchOn();
+    }
+
+    
+    if (m_SDCardEnabled && m_fileOpen) {
+        writeToFile();
+        m_file.close();
+        m_fileOpen = false;
+    }
+}

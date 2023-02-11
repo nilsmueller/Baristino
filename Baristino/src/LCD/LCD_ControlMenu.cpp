@@ -9,7 +9,7 @@ Adafruit_GFX_Button btn_control_grinder;
 Adafruit_GFX_Button btn_control_pump;
 Adafruit_GFX_Button btn_control_back;
 
-uint8_t controlMenuID = 3;
+uint16_t controlMenuID = 3;
 
 
 void drawControlMenu() {
@@ -49,9 +49,9 @@ void drawControlMenu() {
 
 // Returns the ID of the selected Menu. If none is selected the ID 0 is returned
 // which is the ID of the Main Menu.
-unsigned int updateControlMenu() {
+uint16_t updateControlMenu() {
     bool isTouched = getTouchCoord();
-    uint8_t menuID = controlMenuID;
+    uint16_t menuID = controlMenuID;
     btn_control_thermoblock.press(isTouched && btn_control_thermoblock.contains(touch_pixel_x, touch_pixel_y));
     btn_control_brewgroup.press(isTouched && btn_control_brewgroup.contains(touch_pixel_x, touch_pixel_y));
     btn_control_grinder.press(isTouched && btn_control_grinder.contains(touch_pixel_x, touch_pixel_y));
@@ -63,7 +63,7 @@ unsigned int updateControlMenu() {
         btn_control_thermoblock.drawButton(false);
     }
     if (btn_control_thermoblock.justPressed()) {
-        menuID = 3;//31;
+        menuID = thermoblockControlMenuID;
         btn_control_thermoblock.drawButton(true);
     }
 
@@ -72,7 +72,7 @@ unsigned int updateControlMenu() {
         btn_control_brewgroup.drawButton(false);
     }
     if (btn_control_brewgroup.justPressed()) {
-        menuID = 3;//32;
+        menuID = controlMenuID;//32;
         btn_control_brewgroup.drawButton(true);
     }
 

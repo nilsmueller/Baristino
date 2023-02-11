@@ -13,7 +13,7 @@ Adafruit_GFX_Button btn_pump_auto;
 Adafruit_GFX_Button btn_pump_back;
 
 
-uint8_t pumpControlMenuID = 34;
+uint16_t pumpControlMenuID = 34;
 
 WaterControl::WCState last_pump_onoff_state = WaterControl::WCState::OFF;
 
@@ -112,10 +112,10 @@ void drawPumpControlMenu(WaterControl::Pump &pump) {
 }
 
 
-unsigned int updatePumpControlMenu(WaterControl::Pump &pump) {
+uint16_t updatePumpControlMenu(WaterControl::Pump &pump) {
     
     bool isTouched = getTouchCoord();
-    uint8_t menuID = pumpControlMenuID;
+    uint16_t menuID = pumpControlMenuID;
     btn_pump_minus.press(isTouched && btn_pump_minus.contains(touch_pixel_x, touch_pixel_y));
     btn_pump_plus.press(isTouched && btn_pump_plus.contains(touch_pixel_x, touch_pixel_y));
     btn_pump_reset.press(isTouched && btn_pump_reset.contains(touch_pixel_x, touch_pixel_y));

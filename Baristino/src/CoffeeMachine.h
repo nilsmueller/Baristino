@@ -7,6 +7,16 @@
 #include "WProgramm.h"
 #endif
 
+struct BrewParam {
+    float set_temperature;
+    float set_volume;
+    float set_dose;
+
+    float current_temperature;
+    float current_volume;
+    float current_dose;
+};
+
 
 #include "configuration.h"
 #include "statusTools.h"
@@ -19,12 +29,14 @@
 
 #include <SPI.h>
 #include <SD.h>
+#include "Utils/SDCard.h"
 
 
 enum class MachineState : uint8_t {
     IDLE,
     STDBY,
     WARMUP,
+    COOLING,
     HEATING,
     GRINDING,
     BREWGROUP_INSERTION,
@@ -35,6 +47,7 @@ enum class MachineState : uint8_t {
     RETURN_TO_IDLE,
 };
 
+
 // TODO add Error Handling. The main Components are implemented. but the main design structure has yet to be thought of.
 
 class CoffeeMachine {
@@ -43,20 +56,21 @@ class CoffeeMachine {
         void initialize();
         void warmup();
         void makeCoffee();
-
+        void createStepResponse(double stepPower, bool waterFlow);
         void updateSensors();
         void printSensorValues();
         void updateLCD();
 
+        void writeToFile();
 
     private:
         ThermoBlock::PIDHeater m_unitThermoBlock;
         WaterControl::Pump m_unitPump;
         Grinder::Hopper m_unitGrinder;
         BrewGroup::Ensemble m_unitBrewGroup;
-        
+
         double m_setVolume = 150.0;
-        double m_setTemperature = 115.0;
+        double m_setTemperature = 95.0;
         double m_setQuantity = 10.0;
         double m_currentVolume = 0.0;
         double m_currentTemperature;
@@ -64,9 +78,10 @@ class CoffeeMachine {
 
         int16_t m_brewGroupPosition;
         double m_brewGroupCurrent;
+
         // Menu
         uint8_t m_currentMenuID = 0; // ID of the current Menu
-        uint8_t m_newMenuID = 0;     // variable that stores the ID of a potential new Menu
+        uint16_t m_newMenuID = 0;     // variable that stores the ID of a potential new Menu
         long m_lastTouch = millis();
         void changeMenu();
 
@@ -76,7 +91,21 @@ class CoffeeMachine {
 
         File m_file;
         bool m_SDCardEnabled = false;
-        void writeToFile();
+        bool m_fileOpen = false;
+
+        unsigned long m_eggTimerStart;
+
+
+        BrewParam m_brewParam;
+        void resetBrewParam();
+        void updateTemperature();
+        void updateVolume();
+        void updateDose();
+        void updateBrewGroup();
+        void setTemperature();
+        void setVolume();
+        void setDose();
+
 };
 
 #endif

@@ -13,7 +13,7 @@ Adafruit_GFX_Button btn_grinder_auto;
 Adafruit_GFX_Button btn_grinder_back;
 
 
-uint8_t grinderControlMenuID = 33;
+uint16_t grinderControlMenuID = 33;
 
 GrinderState last_grinder_onoff_state = GrinderState::OFF;
 
@@ -113,7 +113,7 @@ void drawGrinderControlMenu(GrinderState *grinderStatus, double *setQuantity, do
 }
 
 
-unsigned int updateGrinderControlMenu(GrinderState *grinderStatus, double *setQuantity, double *currentQuantity) {
+uint16_t updateGrinderControlMenu(GrinderState *grinderStatus, double *setQuantity, double *currentQuantity) {
     
     bool isTouched = getTouchCoord();
     uint8_t menuID = grinderControlMenuID;

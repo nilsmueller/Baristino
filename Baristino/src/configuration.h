@@ -64,8 +64,8 @@ static const double QUANTITY_MIN = 5.0;
 static const double QUANTITY_MAX = 20.0;
 static const double EXTRACTION_LOADCELL_CALIBRATION_FACTOR = -1065.019512;
 
-// Thermoblock
-static const double TEMP_WARMUP = 100.0;
+// Thermoblocks
+static const double TEMP_WARMUP = 95.0;
 static const int PWM_RESOLUTION_SSR_THERMOBLOCK = 6;
 static const double PWM_CARRIER_FREQUENCY = 50.0f;
 static const int DS18B20_RESOLUTION_TEMPSENSOR = 10;
@@ -78,7 +78,18 @@ static const int STEPPER_STEPS_PER_REV = 2048;
 static const int STEPPER_RPM = 5;
 
 // SD Card Module
-static const char FILENAME[] = "BREW_PROCESS.txt";
+//static const char* CONFIG_FILE_NAME = "config.txt";
+
+struct general {
+    int num_beverages;
+    float sum_volume;
+    float sum_quantity;
+    float set_tmp;
+    float set_vol;
+    float set_qty;
+    float set_preinf;
+};
+
 }
 
 enum class ErrorCode : uint8_t {

@@ -13,7 +13,7 @@ Adafruit_GFX_Button btn_coffee_qty_minus;
 Adafruit_GFX_Button btn_coffee_back;
 Adafruit_GFX_Button btn_coffee_go;
 
-int coffeMenuID = 1;
+uint16_t coffeMenuID = 1;
 
 
 void settingsMenuUpdateVolume(double value, double *volume) {
@@ -139,10 +139,11 @@ void drawCoffeeMenu(double *volume, double *temperature, double *quantity) {
     btn_coffee_go.drawButton(false);
 }
 
-unsigned int updateCoffeeMenu(double *volume, double *temperature, double *quantity) {
+
+uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity) {
     bool isTouched = getTouchCoord();
 
-    uint8_t menuID = coffeMenuID;
+    uint16_t menuID = coffeMenuID;
     btn_coffee_vol_minus.press(isTouched && btn_coffee_vol_minus.contains(touch_pixel_x, touch_pixel_y));
     btn_coffee_vol_plus.press(isTouched && btn_coffee_vol_plus.contains(touch_pixel_x, touch_pixel_y));
     btn_coffee_tmp_minus.press(isTouched && btn_coffee_tmp_minus.contains(touch_pixel_x, touch_pixel_y));

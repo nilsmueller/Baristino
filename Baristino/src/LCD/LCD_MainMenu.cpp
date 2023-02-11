@@ -44,7 +44,7 @@ void drawMainMenu() {
 
 // Returns the ID of the selected Menu. If none is selected the ID 0 is returned
 // which is the ID of the Main Menu.
-unsigned int updateMainMenu() {
+uint16_t updateMainMenu() {
   bool isTouched = getTouchCoord();
   uint8_t menuID = 0;
   btn_main_coffee.press(isTouched && btn_main_coffee.contains(touch_pixel_x, touch_pixel_y));

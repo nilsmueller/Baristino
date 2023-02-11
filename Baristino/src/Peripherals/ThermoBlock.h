@@ -63,11 +63,16 @@ class PIDHeater{
   double getPIDsetpoint();
   double getPIDouput();
 
+  // non PID Control
+  void powerOn();
+  void powerOff();
+
   // Temperature Sensor
   double getTemperature();
 
   TBState getState();
   void power(double percentage);
+  double getCurrentPower();
 
   private:
 
@@ -88,9 +93,6 @@ class PIDHeater{
   uint8_t m_pwmResolution = 6;
   double m_pwmCarrierFrequency = 50.0;
 
-  // non PID Control
-  void powerOn();
-  void powerOff();
 
   // PID
   PID m_PID;
@@ -100,8 +102,8 @@ class PIDHeater{
   double m_pidOutput;
   double m_pidSetpoint;
   double m_pidLastInputs[10] = {};
-  double m_pidSetpointTolerance = 3.0;
-  double m_Kp = 2.4;
+  double m_pidSetpointTolerance = 1.0;
+  double m_Kp = 2.2;
   double m_Ki = 0.0;
   double m_Kd = 45.0;
   void updatePIDControl();
