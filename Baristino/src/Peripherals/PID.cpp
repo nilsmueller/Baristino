@@ -124,3 +124,7 @@ void PID::compute() {
     }
   }
 }
+
+double PID::getKp() {return m_KP;}
+double PID::getKi() {return m_KI;}
+double PID::getKd() {return m_KD;}

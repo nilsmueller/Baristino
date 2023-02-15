@@ -34,6 +34,11 @@ enum class TBState : uint8_t {
   STEADYSTATE,
 };
 
+enum class TBMode : uint8_t {
+  WARMUP,
+  BREW,
+};
+
 using IntResult = StatusResult<Status, uint16_t>;
 using doubleResult = StatusResult<Status, double>;
 using boolResult = StatusResult<Status, bool>;
@@ -58,10 +63,14 @@ class PIDHeater{
   void setPIDConstants(double Kp, double Ki, double Kd);
   void startPIDControl();
   void stopPIDControl();
-  void watchPIDControl();
   double getPIDinput();
   double getPIDsetpoint();
   double getPIDouput();
+  double getPIDKp();
+  double getPIDKi();
+  double getPIDKd();
+
+  void switchMode(TBMode mode);
 
   // non PID Control
   void powerOn();
@@ -103,9 +112,13 @@ class PIDHeater{
   double m_pidSetpoint;
   double m_pidLastInputs[10] = {};
   double m_pidSetpointTolerance = 1.0;
+
+
   double m_Kp = 2.2;
   double m_Ki = 0.0;
   double m_Kd = 45.0;
+  TBMode m_mode = TBMode::WARMUP;
+
   void updatePIDControl();
   void checkForSteadyState();
 

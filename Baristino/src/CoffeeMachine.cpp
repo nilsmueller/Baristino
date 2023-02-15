@@ -42,7 +42,8 @@ void CoffeeMachine::warmup() {
 
     LCD::drawWarmUpScreen();
     
-    m_unitThermoBlock.setTemperature(config::TEMP_WARMUP);
+    m_unitThermoBlock.setTemperature(config::TEMP_IDLE);
+    m_unitThermoBlock.switchMode(ThermoBlock::TBMode::WARMUP);
     m_unitThermoBlock.startPIDControl();
 
     if (m_SDCardEnabled) {
@@ -57,14 +58,14 @@ void CoffeeMachine::warmup() {
     while (!m_unitThermoBlock.isSteadyState()) {
         m_unitThermoBlock.update();
         m_brewParam.current_temperature = m_unitThermoBlock.getTemperature();
-        progress = (config::TEMP_WARMUP - abs(config::TEMP_WARMUP - m_brewParam.current_temperature)) / config::TEMP_WARMUP;
+        progress = (config::TEMP_IDLE - abs(config::TEMP_IDLE - m_brewParam.current_temperature)) / config::TEMP_IDLE;
         LCD::updateWarmUpScreen(progress);
 
         // print status
         Serial.print("WARMUP - Temp = ");
         Serial.print(m_brewParam.current_temperature);
         Serial.print(" / ");
-        Serial.print(config::TEMP_WARMUP);
+        Serial.print(config::TEMP_IDLE);
         Serial.print(" [°C] ");
         Serial.print(" | Position : ");
         Serial.print(m_unitBrewGroup.getPosition());
@@ -84,7 +85,6 @@ void CoffeeMachine::warmup() {
     Serial.println("BREWGROUP_HOMING ");
     m_unitBrewGroup.moveUp();
     while (m_unitBrewGroup.isMovingUp()) {
-        Serial.print("Amps : ");
         Serial.println(m_unitBrewGroup.getCurrent());
         m_unitBrewGroup.checkIfHomed();
     }
@@ -94,9 +94,7 @@ void CoffeeMachine::warmup() {
     // open brew group
     m_unitBrewGroup.moveDown();
     while (m_unitBrewGroup.isMovingDown()) {
-        Serial.print("Amps : ");
         Serial.print(m_unitBrewGroup.getCurrent());
-        Serial.print("   Pos : ");
         Serial.println(m_unitBrewGroup.getPosition());
         m_unitBrewGroup.checkIfOpened();
     }
@@ -111,9 +109,9 @@ void CoffeeMachine::updateTemperature() {
 }
 
 void CoffeeMachine::updateVolume() {
-    if (m_currentState == MachineState::TAMPERING || m_currentState == MachineState::EXTRACTION) {
+    if (m_currentState >= MachineState::TAMPERING) { //m_currentState == MachineState::TAMPERING || m_currentState == MachineState::EXTRACTION || m_currentState == MachineState::RETURN_TO_IDLE) {
         m_unitPump.updateScale();
-        m_brewParam.current_volume = m_unitPump.getCurrentAmount();
+        m_brewParam.current_volume = max(m_brewParam.current_volume, m_unitPump.getCurrentAmount());
     }
     else {
         m_brewParam.current_volume = 0.0f;
@@ -123,11 +121,11 @@ void CoffeeMachine::updateVolume() {
 void CoffeeMachine::updateDose() {
     if (m_currentState == MachineState::GRINDING) {
         m_unitGrinder.updateScale();
-        m_brewParam.current_dose = m_unitGrinder.getCurrentAmount();
+        m_brewParam.current_dose = max(m_brewParam.current_dose, m_unitGrinder.getCurrentAmount());
     }
-    else {
-        m_brewParam.current_dose = 0.0f;
-    }
+    //else {
+    //    m_brewParam.current_dose = 0.0f;
+    //}
 }
 
 void CoffeeMachine::updateBrewGroup() {
@@ -162,13 +160,15 @@ void CoffeeMachine::printSensorValues() {
     Serial.print(m_brewGroupPosition);
     Serial.print(" | BG_Current : ");
     Serial.print(m_brewGroupCurrent);
+    Serial.print(" | PID_CV : ");
+    Serial.print(m_unitThermoBlock.getPIDouput());
     Serial.println();
 }
 
 
 // ASSUMPTIONS: BREWGROUP IS HOMED AND OPEN, GRINDER FLAS IS HOMED AND CLOSED
 void CoffeeMachine::makeCoffee() {
-    if (m_newMenuID == 11) {
+    if (m_newMenuID == 21) {
         m_unitThermoBlock.update();
 
 
@@ -231,9 +231,14 @@ void CoffeeMachine::makeCoffee() {
                 //
                 m_unitThermoBlock.stopPIDControl();
                 m_unitThermoBlock.powerOn();
+                //m_unitThermoBlock.power(0.9);
+                m_brewParam.start_temperature = m_unitThermoBlock.getTemperature();
+                //m_unitThermoBlock.switchMode(ThermoBlock::TBMode::BREW);
+                //m_unitThermoBlock.startPIDControl();
                 //
                 m_unitPump.switchOn();
                 m_currentState = MachineState::EXTRACTION;
+
             }
             break;
 
@@ -252,9 +257,6 @@ void CoffeeMachine::makeCoffee() {
                     }
 
                 m_currentState = MachineState::BREWGROUP_HOME;
-            }
-            else {
-                m_unitPump.updateScale();
             }
             break;
 
@@ -285,6 +287,7 @@ void CoffeeMachine::makeCoffee() {
                 m_file.close();
             }
             break;
+            resetBrewParam();
 
         default:
             break;
@@ -304,10 +307,13 @@ void CoffeeMachine::changeMenu() {
                 LCD::drawMainMenu();
                 break;
             case 1:
-                LCD::drawCoffeeMenu();
+                //LCD::drawCoffeeMenu(&m_brewParam);
                 break;
-            case 11:
-                LCD::drawMakeCoffeeScreen();
+            case 2:
+                LCD::drawCustomMenu(&m_brewParam);
+                break;
+            case 21:
+                LCD::drawMakeCoffeeScreen(&m_brewParam);
                 break;
             case 3:
                 LCD::drawControlMenu();
@@ -342,9 +348,12 @@ void CoffeeMachine::updateLCD() {
             m_newMenuID = LCD::updateMainMenu();
             break;
         case 1:
-            m_newMenuID = LCD::updateCoffeeMenu(&m_brewParam);
+            //m_newMenuID = LCD::updateCoffeeMenu(&m_brewParam);
             break;
-        case 11:
+        case 2:
+            m_newMenuID = LCD::updateCustomMenu(&m_brewParam);
+            break;
+        case 21:
             m_newMenuID = LCD::updateMakeCoffeeScreen(&m_brewParam);
             makeCoffee();
             break;
@@ -389,6 +398,12 @@ void CoffeeMachine::writeToFile() {
             m_file.print(m_brewParam.current_dose);
             m_file.print(",");
             m_file.print(m_brewParam.current_volume);
+            m_file.print(",");
+            m_file.print(m_unitThermoBlock.getPIDKp());
+            m_file.print(",");
+            m_file.print(m_unitThermoBlock.getPIDKi());
+            m_file.print(",");
+            m_file.print(m_unitThermoBlock.getPIDKd());
             m_file.println();
         }
         else {

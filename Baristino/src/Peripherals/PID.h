@@ -24,6 +24,10 @@ class PID {
     void setSampleTimeMS(unsigned long dt);
     void compute();
 
+    double getKp();
+    double getKi();
+    double getKd();
+
   private:
     bool m_mode = false;
 

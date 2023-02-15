@@ -171,6 +171,16 @@ void PIDHeater::update() {
 }
 
 
+void PIDHeater::switchMode(TBMode mode) {
+  if (mode == TBMode::WARMUP) {
+    setPIDConstants(2.2, 0.0, 45.0);
+  }
+  else {
+    setPIDConstants(200, 20.0, 1.0);
+  }
+  m_mode = mode;
+}
+
 
 void PIDHeater::startPIDControl() {
   m_PID.setMode(true);              // turn on the PID controller
@@ -197,6 +207,7 @@ void PIDHeater::setPIDConstants(double Kp, double Ki, double Kd) {
 
 
 
+
 void PIDHeater::updatePIDControl() {
 
   if (m_pidInput == NAN) {        // in case auf faulty reading from the sensor shut down the heater
@@ -212,25 +223,13 @@ void PIDHeater::updatePIDControl() {
   
 }
 
-
-
-
-
-
-void PIDHeater::watchPIDControl() {
-  Serial.print("SP:");
-  Serial.print(m_pidSetpoint);
-  Serial.print("   IN:");
-  Serial.print(m_pidInput);
-  Serial.print("   OUT:");
-  Serial.print(m_pidOutput);
-  Serial.print("   DUTY:");
-  Serial.print(m_SSR.getDutyCycle());
-}
-
-
 double PIDHeater::getPIDinput() {return m_pidInput;}
 double PIDHeater::getPIDsetpoint() {return m_pidSetpoint;}
 double PIDHeater::getPIDouput() {return m_pidOutput;}
+
+
+double PIDHeater::getPIDKp() {return m_PID.getKp();}
+double PIDHeater::getPIDKi() {return m_PID.getKi();}
+double PIDHeater::getPIDKd() {return m_PID.getKd();}
 
 }

@@ -14,32 +14,60 @@ int cProgBarW1 = (int)floor((cProgBarWInner + cProgBarRem) / 3);
 int cProgBarW2 = cProgBarW1;
 int cProgBarW3 = cProgBarWInner - cProgBarW1 - cProgBarW2;
 
-uint16_t makeCoffeeScreenID = 11;
+uint16_t makeCoffeeScreenID = 21;
+
+char temp_cur_buffer[7];
+char temp_disp[18];
+char vol_cur_buffer[7];
+char vol_disp[18];
+char dose_cur_buffer[7];
+char dose_disp[18];
 
 
-void drawMakeCoffeeScreen() {
+void drawMakeCoffeeScreen(BrewParam *process) {
     drawEmptyScreen();
     
     // Topbar
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 2*LCD_PAD);
     tft.setTextColor(myWHITE);
     tft.setTextSize(3);
-    tft.print("Set Brew");
+    tft.print("Coffee in");
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 7*LCD_PAD);
-    tft.print("Parameters");
+    tft.print("process..");
 
     // Main 
     tft.setTextColor(myWHITE);
     tft.setTextSize(3);
 
     tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
-    tft.print("Temp.  [C]");  
+    tft.print("Coffee [g]");
 
     tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
-    tft.print("Water [mL]");  
+    tft.print("Temp.  [C]");  
 
     tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
-    tft.print("Coffee [g]");
+    tft.print("Water [mL]");  
+
+    // dose
+    tft.setTextColor(myYELLOW, myBLACK);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
+    tft.print((int)process->current_dose);
+    tft.print(" / ");
+    tft.print((int)process->set_dose);
+
+    // temperature
+    tft.setTextColor(myORANGE, myBLACK);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
+    tft.print((int)process->current_temperature);
+    tft.print(" / ");
+    tft.print((int)process->set_temperature);
+
+    // volume
+    tft.setTextColor(myBLUE, myBLACK);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
+    tft.print((int)process->current_volume);
+    tft.print(" / ");
+    tft.print((int)process->set_volume);
 
 
     tft.drawRect(cProgBarX, cProgBarY, cProgBarW, cProgBarH, myWHITE);
@@ -48,63 +76,50 @@ void drawMakeCoffeeScreen() {
 
 
 uint16_t updateMakeCoffeeScreen(BrewParam *process) {
-
-    double p1 = max(0, min(1, process->set_temperature - abs(process->set_temperature - process->current_temperature) / process->set_temperature));
-    //prog = 1 - max(0, min(1, abs((target_temp - current_temp) / (target_temp - start_temp))))
-    double p2 = max(0, min(1, process->current_volume / process->set_volume));
-    double p3 = max(0, min(1, process->current_dose / process->set_dose));
+    // quantity
+    tft.setTextSize(3);
+    tft.setTextColor(myYELLOW, myBLACK);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
+    dtostrf(process->current_dose, 5, 2, dose_cur_buffer);
+    sprintf(dose_disp, "%s / %d", dose_cur_buffer, (int)process->set_dose);
+    tft.print(dose_disp);
 
     // temperature
     tft.setTextSize(3);
     tft.setTextColor(myORANGE, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 10, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
-    tft.print(process->current_temperature);
-    tft.print(" / ");
-    tft.print((int)process->set_temperature);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
+    dtostrf(process->current_temperature, 5, 2, temp_cur_buffer);
+    sprintf(temp_disp, "%s / %d", temp_cur_buffer, (int)process->set_temperature);
+    tft.print(temp_disp);
+
 
     // volume
     tft.setTextSize(3);
     tft.setTextColor(myBLUE, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 10, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
-    tft.print(process->current_volume);
-    tft.print(" / ");
-    tft.print((int)process->set_volume);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
+    dtostrf(process->current_volume, 5, 2, vol_cur_buffer);
+    sprintf(vol_disp, "%s / %d", vol_cur_buffer, (int)process->set_volume);
+    tft.print(vol_disp);
 
-    // quantity
-    tft.setTextSize(3);
-    tft.setTextColor(myYELLOW, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 10, LCD_MAIN_ORIGIN_Y + 15*LCD_PAD + 20);
-    tft.print(process->current_dose);
-    tft.print(" / ");
-    tft.print((int)process->set_dose);
+    // dose
+    double p1 = max(0, min(1, process->current_dose / process->set_dose));
+    double val = abs((process->set_temperature - process->current_temperature) / (process->set_temperature - process->start_temperature));
+    double p2 = 1 - max(0, min(1, val));
+    double p3 = max(0, min(1, process->current_volume / process->set_volume));
 
-
-    int w1 = (int)(p1 * cProgBarW1) - 2;
-    int w2 = int(p2 * cProgBarW2);
-    int w3 = int(p3 * cProgBarW3);
+    int w1 = (int)(p1 * cProgBarW1);
+    int w2 = (int)(p2 * cProgBarW2);
+    int w3 = (int)(p3 * cProgBarW3);
     
     int x1 = cProgBarX + 2;
-    int x2 = x1 + w1 + 1;
-    int x3 = x2 + w2 + 1;
-
-    // with boundaries
-    /*
-    tft.drawRect(x1, cProgBarY+2, w1, cProgBarHInner, (p1 < 1) ? myDARKORANGE : myDARKGREEN);
-    tft.drawRect(x2, cProgBarY+2, w2, cProgBarHInner, (p2 < 1) ? myDARKBLUE2 : myDARKGREEN);
-    tft.drawRect(x3, cProgBarY+2, w3, cProgBarHInner, (p3 < 1) ? myDARKYELLOW : myDARKGREEN);
-    tft.drawRect(x1+1, cProgBarY+3, w1-2, cProgBarHInner-2, (p1 < 1) ? myDARKORANGE : myDARKGREEN);
-    tft.drawRect(x2+1, cProgBarY+3, w2-2, cProgBarHInner-2, (p2 < 1) ? myDARKBLUE2 : myDARKGREEN);
-    tft.drawRect(x3+1, cProgBarY+3, w3-2, cProgBarHInner-2, (p3 < 1) ? myDARKYELLOW : myDARKGREEN);
-
-    tft.fillRect(x1+2, cProgBarY+4, w1-3, cProgBarHInner-3, (p1 < 1) ? myORANGE : myGREEN);
-    tft.fillRect(x2+2, cProgBarY+4, w2-3, cProgBarHInner-3, (p2 < 1) ? myBLUE : myGREEN);
-    tft.fillRect(x3+2, cProgBarY+4, w3-3, cProgBarHInner-3, (p3 < 1) ? myYELLOW : myGREEN);
-    */
+    int x2 = x1 + w1;
+    int x3 = x2 + w2;
 
     // without Boundaries
-    tft.fillRect(x1, cProgBarY+2, w1, cProgBarHInner, (p1 < 1) ? myDARKORANGE : myDARKGREEN);
-    tft.fillRect(x2, cProgBarY+2, w2, cProgBarHInner, (p2 < 1) ? myDARKBLUE2 : myDARKGREEN);
-    tft.fillRect(x3, cProgBarY+2, w3, cProgBarHInner, (p3 < 1) ? myDARKYELLOW : myDARKGREEN);
+    tft.fillRect(x1, cProgBarY+2, w1, cProgBarHInner, (p1 < 1) ? myYELLOW: myDARKGREEN);
+    tft.fillRect(x2, cProgBarY+2, w2, cProgBarHInner, (p2 < 1) ? myORANGE: myDARKGREEN);
+    tft.fillRect(x3, cProgBarY+2, w3, cProgBarHInner, (p3 < 1) ? myBLUE : myDARKGREEN);
+    tft.fillRect(x3+w3, cProgBarY+2, cProgBarWInner-w1-w2-w3, cProgBarHInner, myBLACK);
 
     return makeCoffeeScreenID;
 }

@@ -12,9 +12,11 @@ struct BrewParam {
     double set_volume = 150.0f;
     double set_dose = 12.0f;
 
-    double current_temperature;
-    double current_volume;
-    double current_dose;
+    double current_temperature = 0.0;
+    double current_volume = 0.0f;
+    double current_dose = 0.0f;
+
+    double start_temperature;
 };
 
 
