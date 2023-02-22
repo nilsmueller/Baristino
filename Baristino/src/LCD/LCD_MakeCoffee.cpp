@@ -110,16 +110,18 @@ uint16_t updateMakeCoffeeScreen(BrewParam *process) {
     int w1 = (int)(p1 * cProgBarW1);
     int w2 = (int)(p2 * cProgBarW2);
     int w3 = (int)(p3 * cProgBarW3);
+    int w_total = w1 + w2 + w3;
     
     int x1 = cProgBarX + 2;
     int x2 = x1 + w1;
     int x3 = x2 + w2;
 
     // without Boundaries
-    tft.fillRect(x1, cProgBarY+2, w1, cProgBarHInner, (p1 < 1) ? myYELLOW: myDARKGREEN);
-    tft.fillRect(x2, cProgBarY+2, w2, cProgBarHInner, (p2 < 1) ? myORANGE: myDARKGREEN);
-    tft.fillRect(x3, cProgBarY+2, w3, cProgBarHInner, (p3 < 1) ? myBLUE : myDARKGREEN);
-    tft.fillRect(x3+w3, cProgBarY+2, cProgBarWInner-w1-w2-w3, cProgBarHInner, myBLACK);
+    //tft.fillRect(x1, cProgBarY+2, w1, cProgBarHInner, (p1 < 1) ? myYELLOW: myDARKGREEN);
+    //tft.fillRect(x2, cProgBarY+2, w2, cProgBarHInner, (p2 < 1) ? myORANGE: myDARKGREEN);
+    //tft.fillRect(x3, cProgBarY+2, w3, cProgBarHInner, (p3 < 1) ? myBLUE : myDARKGREEN);
+    //tft.fillRect(x3+w3, cProgBarY+2, cProgBarWInner-w1-w2-w3, cProgBarHInner, myBLACK);
+    tft.fillRect(x1, cProgBarY+2, w_total, cProgBarHInner, myDARKGREEN);
 
     return makeCoffeeScreenID;
 }

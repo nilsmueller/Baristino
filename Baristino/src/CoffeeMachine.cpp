@@ -32,12 +32,7 @@ void CoffeeMachine::initialize() {
 }
 
 
-/// @brief The Coffee Machine Warmup sequence. This method
-// heats the thermoblock to the specified config::TEMP_WARMUP
-// temperature. It updated the progress bar on the TFT Screen while
-// the set temperature is not achieved. On achieving the set temperature
-// it switches to the Main Menu. It does not stop the PID control loop.
-// so the Thermoblock temperature is kept at the set temperature.s
+
 void CoffeeMachine::warmup() {
 
     LCD::drawWarmUpScreen();
@@ -51,7 +46,7 @@ void CoffeeMachine::warmup() {
         generateWarmupFileName(filename);
         Serial.println(filename);
         m_file = SD.open(filename, FILE_WRITE);
-        m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
+        m_file.println("time,temp,PIDsp,PIDpv,duty,qty,vol");
     }
 
     double progress;    
@@ -85,17 +80,17 @@ void CoffeeMachine::warmup() {
     Serial.println("BREWGROUP_HOMING ");
     m_unitBrewGroup.moveUp();
     while (m_unitBrewGroup.isMovingUp()) {
-        Serial.println(m_unitBrewGroup.getCurrent());
+        //Serial.println(m_unitBrewGroup.getCurrent());
         m_unitBrewGroup.checkIfHomed();
     }
 
-    delay(2000);
+    delay(1000);
     Serial.println("BREWGROUP_OPENING");
     // open brew group
     m_unitBrewGroup.moveDown();
     while (m_unitBrewGroup.isMovingDown()) {
-        Serial.print(m_unitBrewGroup.getCurrent());
-        Serial.println(m_unitBrewGroup.getPosition());
+        //Serial.print(m_unitBrewGroup.getCurrent());
+        //Serial.println(m_unitBrewGroup.getPosition());
         m_unitBrewGroup.checkIfOpened();
     }
 
@@ -107,6 +102,7 @@ void CoffeeMachine::updateTemperature() {
     m_unitThermoBlock.update();
     m_brewParam.current_temperature = m_unitThermoBlock.getTemperature();
 }
+
 
 void CoffeeMachine::updateVolume() {
     if (m_currentState >= MachineState::TAMPERING) { //m_currentState == MachineState::TAMPERING || m_currentState == MachineState::EXTRACTION || m_currentState == MachineState::RETURN_TO_IDLE) {
@@ -120,12 +116,9 @@ void CoffeeMachine::updateVolume() {
 
 void CoffeeMachine::updateDose() {
     if (m_currentState == MachineState::GRINDING) {
-        m_unitGrinder.updateScale();
+        //m_unitGrinder.updateScale();
         m_brewParam.current_dose = max(m_brewParam.current_dose, m_unitGrinder.getCurrentAmount());
     }
-    //else {
-    //    m_brewParam.current_dose = 0.0f;
-    //}
 }
 
 void CoffeeMachine::updateBrewGroup() {
@@ -139,14 +132,13 @@ void CoffeeMachine::resetBrewParam() {
 }
 
 
+
 void CoffeeMachine::updateSensors() {
     updateTemperature();
     updateVolume();
     updateDose();
     updateBrewGroup();
 }
-
-
 
 
 void CoffeeMachine::printSensorValues() {
@@ -160,8 +152,8 @@ void CoffeeMachine::printSensorValues() {
     Serial.print(m_brewGroupPosition);
     Serial.print(" | BG_Current : ");
     Serial.print(m_brewGroupCurrent);
-    Serial.print(" | PID_CV : ");
-    Serial.print(m_unitThermoBlock.getPIDouput());
+    Serial.print(" | DutyCycle : ");
+    Serial.print(m_unitThermoBlock.getDutyCycle());
     Serial.println();
 }
 
@@ -184,7 +176,7 @@ void CoffeeMachine::makeCoffee() {
                 Serial.println(filename);
                 m_file = SD.open(filename, FILE_WRITE);
                 writeHeader(&m_file, &m_brewParam);
-                m_file.println("time,temp,PIDsp,PIDpv,PIDov,qty,vol");
+                m_file.println("time,temp,PIDsp,PIDpv,duty,qty,vol,Kp,Ki,Kd");
             }
             m_unitThermoBlock.setTemperature(m_brewParam.set_temperature);
             m_unitThermoBlock.startPIDControl();
@@ -212,6 +204,7 @@ void CoffeeMachine::makeCoffee() {
             if (m_unitGrinder.isFinished()) {      
                 m_unitGrinder.openFlap();
                 m_grinderFlapOpenedTimestamp = millis();
+                m_brewParam.current_dose = max(m_brewParam.current_dose, m_unitGrinder.getCurrentAmount());// update with last value
             }
             // wait for 2 seconds so that coffee ground can slide into the brewchamber
             if (m_unitGrinder.isOpen() && (millis() - m_grinderFlapOpenedTimestamp > 2000)) {
@@ -228,12 +221,10 @@ void CoffeeMachine::makeCoffee() {
 
             if (m_unitBrewGroup.isPress() && m_unitThermoBlock.isSteadyState()) {
                 m_unitPump.setAmount(m_brewParam.set_volume);
-                //
-                m_unitThermoBlock.stopPIDControl();
-                m_unitThermoBlock.powerOn();
-                //m_unitThermoBlock.power(0.9);
+                //m_unitThermoBlock.stopPIDControl();
+                //m_unitThermoBlock.powerOn();
                 m_brewParam.start_temperature = m_unitThermoBlock.getTemperature();
-                //m_unitThermoBlock.switchMode(ThermoBlock::TBMode::BREW);
+                m_unitThermoBlock.switchMode(ThermoBlock::TBMode::BREW);
                 //m_unitThermoBlock.startPIDControl();
                 //
                 m_unitPump.switchOn();
@@ -307,7 +298,7 @@ void CoffeeMachine::changeMenu() {
                 LCD::drawMainMenu();
                 break;
             case 1:
-                //LCD::drawCoffeeMenu(&m_brewParam);
+                LCD::drawSimpleCoffeeMenu();
                 break;
             case 2:
                 LCD::drawCustomMenu(&m_brewParam);
@@ -348,7 +339,7 @@ void CoffeeMachine::updateLCD() {
             m_newMenuID = LCD::updateMainMenu();
             break;
         case 1:
-            //m_newMenuID = LCD::updateCoffeeMenu(&m_brewParam);
+            m_newMenuID = LCD::updateSimpleCoffeeMenu(&m_brewParam);
             break;
         case 2:
             m_newMenuID = LCD::updateCustomMenu(&m_brewParam);
@@ -393,7 +384,7 @@ void CoffeeMachine::writeToFile() {
             m_file.print(",");
             m_file.print(m_unitThermoBlock.getPIDinput());
             m_file.print(",");
-            m_file.print(m_unitThermoBlock.getPIDouput());
+            m_file.print(m_unitThermoBlock.getDutyCycle());
             m_file.print(",");
             m_file.print(m_brewParam.current_dose);
             m_file.print(",");

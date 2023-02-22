@@ -66,6 +66,7 @@ class PIDHeater{
   double getPIDinput();
   double getPIDsetpoint();
   double getPIDouput();
+  double getDutyCycle();
   double getPIDKp();
   double getPIDKi();
   double getPIDKd();
@@ -81,7 +82,6 @@ class PIDHeater{
 
   TBState getState();
   void power(double percentage);
-  double getCurrentPower();
 
   private:
 
@@ -100,18 +100,18 @@ class PIDHeater{
   
   // PWM
   uint8_t m_pwmResolution = 6;
-  double m_pwmCarrierFrequency = 50.0;
+  double m_pwmCarrierFrequency = 50.0f;
 
 
   // PID
   PID m_PID;
   SolidStateRelay m_SSR;
-  double m_setTemperature = 20.0;
+  double m_setTemperature = 20.0f;
   double m_pidInput;
   double m_pidOutput;
   double m_pidSetpoint;
   double m_pidLastInputs[10] = {};
-  double m_pidSetpointTolerance = 1.0;
+  double m_pidSetpointTolerance = 1.0f;
 
 
   double m_Kp = 2.2;

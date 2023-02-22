@@ -47,7 +47,7 @@ drawEmptyScreen();
     tft.setTextSize(4);
     tft.setTextColor(myBLUE);
     tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 15);
-    tft.print((int)(thermoblock.getCurrentPower() * 100)); 
+    tft.print((int)(thermoblock.getDutyCycle() * 100)); 
 
     btn_stepresponse_startstop.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myRED, myWHITE, btnLabel[3], 4);
     btn_stepresponse_startstop.drawButton(false);

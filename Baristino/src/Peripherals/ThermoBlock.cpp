@@ -122,11 +122,6 @@ void PIDHeater::power(double percentage) {
 }
 
 
-double PIDHeater::getCurrentPower() {
-  return m_SSR.getDutyCycle();
-}
-
-
 double PIDHeater::getTemperature() {
   return m_currentTemperature;
 }
@@ -164,7 +159,7 @@ void PIDHeater::update() {
   // read the current temperatures
   requestTemp();
 
-  if (isHeating()) {
+  if (isHeating() || isSteadyState()) {
     updatePIDControl();
     checkForSteadyState();
   }
@@ -173,10 +168,10 @@ void PIDHeater::update() {
 
 void PIDHeater::switchMode(TBMode mode) {
   if (mode == TBMode::WARMUP) {
-    setPIDConstants(2.2, 0.0, 45.0);
+    setPIDConstants(2.3, 0.0, 45.0);
   }
   else {
-    setPIDConstants(200, 20.0, 1.0);
+    setPIDConstants(100, 1.0, 0.0);
   }
   m_mode = mode;
 }
@@ -213,6 +208,7 @@ void PIDHeater::updatePIDControl() {
   if (m_pidInput == NAN) {        // in case auf faulty reading from the sensor shut down the heater
     powerOff();
     stopPIDControl();
+    Serial.println("PID Control stopped due to NAN");
   }
   else {
     // determine the PID controlled variable.
@@ -231,5 +227,7 @@ double PIDHeater::getPIDouput() {return m_pidOutput;}
 double PIDHeater::getPIDKp() {return m_PID.getKp();}
 double PIDHeater::getPIDKi() {return m_PID.getKi();}
 double PIDHeater::getPIDKd() {return m_PID.getKd();}
+
+double PIDHeater::getDutyCycle() {return m_SSR.getDutyCycle();};
 
 }

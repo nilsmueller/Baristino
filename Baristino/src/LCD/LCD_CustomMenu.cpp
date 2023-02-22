@@ -81,7 +81,7 @@ void drawCustomMenu(BrewParam *brewParameter) {
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 2*LCD_PAD);
     tft.setTextColor(myWHITE);
     tft.setTextSize(3);
-    tft.print("Custom Brew");
+    tft.print("Adjust");
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 7*LCD_PAD);
     tft.print("Parameters");
 

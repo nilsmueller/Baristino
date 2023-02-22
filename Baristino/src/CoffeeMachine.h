@@ -9,8 +9,8 @@
 
 struct BrewParam {
     double set_temperature = 93.0f;
-    double set_volume = 150.0f;
-    double set_dose = 12.0f;
+    double set_volume = 150.0;
+    double set_dose = 12.0;
 
     double current_temperature = 0.0;
     double current_volume = 0.0f;
@@ -94,10 +94,6 @@ class CoffeeMachine {
         void updateVolume();
         void updateDose();
         void updateBrewGroup();
-        void setTemperature();
-        void setVolume();
-        void setDose();
-
 };
 
 #endif
