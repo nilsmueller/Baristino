@@ -3,6 +3,7 @@
 
 namespace LCD {
 
+uint8_t customMenuID = 2;
 
 Adafruit_GFX_Button btn_coffee_vol_plus;
 Adafruit_GFX_Button btn_coffee_vol_minus;
@@ -12,9 +13,6 @@ Adafruit_GFX_Button btn_coffee_qty_plus;
 Adafruit_GFX_Button btn_coffee_qty_minus;
 Adafruit_GFX_Button btn_coffee_back;
 Adafruit_GFX_Button btn_coffee_go;
-
-uint16_t coffeMenuID = 1;
-
 
 void settingsMenuUpdateVolume(double value, double *volume) {
 
@@ -76,14 +74,14 @@ void settingsMenuUpdateQuantity(double value, double *quantity) {
 }
 
 
-void drawCoffeeMenu(double *volume, double *temperature, double *quantity) {
+void drawCustomMenu(BrewParam *brewParameter) {
     drawEmptyScreen();
 
     // Topbar
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 2*LCD_PAD);
     tft.setTextColor(myWHITE);
     tft.setTextSize(3);
-    tft.print("Set Brew");
+    tft.print("Adjust");
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 7*LCD_PAD);
     tft.print("Parameters");
 
@@ -100,6 +98,15 @@ void drawCoffeeMenu(double *volume, double *temperature, double *quantity) {
     tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 25*LCD_PAD + 20);
     tft.print("Coffee  [g]");
 
+    tft.setTextSize(4);
+    tft.setTextColor(myBLUE, myBLACK);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 15);
+    tft.print((int)brewParameter->set_volume);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD + 15);
+    tft.print((int)brewParameter->set_temperature);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 25*LCD_PAD + 15);
+    tft.print((int)brewParameter->set_dose);
+
 
     char btnLabel[4][6] = {"-", "+", "Back", "Go!"};
     btn_coffee_vol_minus.initButtonUL(&tft, LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD, 60, 60, myBLUE, myYELLOW, myBLUE, btnLabel[0], 6);
@@ -110,18 +117,6 @@ void drawCoffeeMenu(double *volume, double *temperature, double *quantity) {
 
     btn_coffee_qty_minus.initButtonUL(&tft, LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - LCD_PAD, LCD_MAIN_ORIGIN_Y + 25*LCD_PAD, 60, 60, myBLUE, myYELLOW, myBLUE, btnLabel[0], 6);
     btn_coffee_qty_minus.drawButton(false);
-
-    tft.setTextSize(4);
-    tft.setTextColor(myBLUE);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 15);
-    tft.print((int)*volume); 
-
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 13.5*LCD_PAD + 15);
-    tft.print((int)*temperature); 
-
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 + 60 + 2*LCD_PAD, LCD_MAIN_ORIGIN_Y + 25*LCD_PAD + 15);
-    tft.print((int)*quantity);  
-
 
     btn_coffee_vol_plus.initButtonUL(&tft, LCD_WIDTH - LCD_MAIN_ORIGIN_X - 60, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD, 60, 60, myBLUE, myYELLOW, myBLUE, btnLabel[1], 6);
     btn_coffee_vol_plus.drawButton(false);
@@ -140,10 +135,11 @@ void drawCoffeeMenu(double *volume, double *temperature, double *quantity) {
 }
 
 
-uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity) {
+uint16_t updateCustomMenu(BrewParam *brewParameter) {
+//double *volume, double *temperature, double *quantity) {
     bool isTouched = getTouchCoord();
 
-    uint16_t menuID = coffeMenuID;
+    uint16_t menuID = customMenuID;
     btn_coffee_vol_minus.press(isTouched && btn_coffee_vol_minus.contains(touch_pixel_x, touch_pixel_y));
     btn_coffee_vol_plus.press(isTouched && btn_coffee_vol_plus.contains(touch_pixel_x, touch_pixel_y));
     btn_coffee_tmp_minus.press(isTouched && btn_coffee_tmp_minus.contains(touch_pixel_x, touch_pixel_y));
@@ -158,7 +154,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
     }
     if (btn_coffee_vol_minus.justPressed()) {
         btn_coffee_vol_minus.drawButton(true);
-        settingsMenuUpdateVolume(*volume - 10.0, volume);
+        settingsMenuUpdateVolume(brewParameter->set_volume - 10.0, &brewParameter->set_volume);
     }
 
 
@@ -167,7 +163,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
     }
     if (btn_coffee_vol_plus.justPressed()) {
         btn_coffee_vol_plus.drawButton(true);
-        settingsMenuUpdateVolume(*volume + 10.0, volume);
+        settingsMenuUpdateVolume(brewParameter->set_volume + 10.0, &brewParameter->set_volume);
     }    
 
 
@@ -176,7 +172,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
     }
     if (btn_coffee_tmp_minus.justPressed()) {
         btn_coffee_tmp_minus.drawButton(true);
-        settingsMenuUpdateTemperature(*temperature - 1.0, temperature);
+        settingsMenuUpdateTemperature(brewParameter->set_temperature - 1.0, &brewParameter->set_temperature);
     }
 
 
@@ -185,7 +181,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
     }
     if (btn_coffee_tmp_plus.justPressed()) {
         btn_coffee_tmp_plus.drawButton(true);
-        settingsMenuUpdateTemperature(*temperature + 1.0, temperature);
+        settingsMenuUpdateTemperature(brewParameter->set_temperature + 1.0, &brewParameter->set_temperature);
     }    
 
 
@@ -193,7 +189,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
         btn_coffee_qty_minus.drawButton(false);
     }
     if (btn_coffee_qty_minus.justPressed()) {
-        settingsMenuUpdateQuantity(*quantity - 1.0, quantity);
+        settingsMenuUpdateQuantity(brewParameter->set_dose - 1, &brewParameter->set_dose);
         btn_coffee_qty_minus.drawButton(true);
     }
 
@@ -203,7 +199,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
     }
     if (btn_coffee_qty_plus.justPressed()) {
         btn_coffee_qty_plus.drawButton(true);
-        settingsMenuUpdateQuantity(*quantity + 1.0, quantity);
+        settingsMenuUpdateQuantity(brewParameter->set_dose + 1, &brewParameter->set_dose);
     }
 
 
@@ -212,7 +208,7 @@ uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity)
     }
     if (btn_coffee_go.justPressed()) {
         btn_coffee_go.drawButton(true);
-        menuID = 11;
+        menuID = 21;
     }
 
 

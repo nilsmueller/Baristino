@@ -89,11 +89,12 @@ extern void sleep();
 extern void drawWarmUpScreen();
 extern void drawEmptyScreen();
 extern void drawEmptyScreenDouble();
-extern void drawMainMenu();
-extern void drawCoffeeMenu(double *volume, double *temperature, double *quantity);
-extern void drawMakeCoffeeScreen();
-extern void drawControlMenu();
-extern void drawThermoControlMenu();
+extern void drawMainMenu(); // 0
+extern void drawSimpleCoffeeMenu(); // 1
+extern void drawCustomMenu(BrewParam *brewParameter); // 2
+extern void drawMakeCoffeeScreen(BrewParam *process); // 21
+extern void drawControlMenu(); // 3
+extern void drawThermoControlMenu(); // 31
 extern void drawStepResponseMenu(ThermoBlock::PIDHeater &thermoblock, WaterControl::Pump &pump);
 
 extern void drawPumpControlMenu(WaterControl::Pump &pump);
@@ -102,8 +103,9 @@ extern void drawErrorScreen(ErrorCode code);
 
 extern void updateWarmUpScreen(double percentage);
 extern uint16_t updateMainMenu();
-extern uint16_t updateCoffeeMenu(double *volume, double *temperature, double *quantity);
-extern uint16_t updateMakeCoffeeScreen(double setTemp, double setVol, double setQty, double curTemp, double curVol, double curQty);
+extern uint16_t updateSimpleCoffeeMenu(BrewParam *BrewParameter);
+extern uint16_t updateCustomMenu(BrewParam *brewParameter);//double *volume, double *temperature, double *quantity);
+extern uint16_t updateMakeCoffeeScreen(BrewParam *brewParameter);//double setTemp, double setVol, double setQty, double curTemp, double curVol, double curQty);
 extern uint16_t updateControlMenu();
 extern uint16_t updateThermoControlMenu();
 extern uint16_t updateStepResponseMenu(ThermoBlock::PIDHeater &thermoblock, WaterControl::Pump &pump);

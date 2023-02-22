@@ -90,8 +90,10 @@ than the sample time.
 void PID::compute() {
   if(m_mode) {
     unsigned long now = millis();
+    double m_dt_real = now - m_lastTimestamp;
 
-    if ((now - m_lastTimestamp) >= m_dt) {
+    if (m_dt_real >= m_dt) {
+
 
       double PV = *m_PV;                    // input
       double d_PV = (PV - m_lastPV);        // input difference
@@ -102,15 +104,15 @@ void PID::compute() {
       m_proportional = m_KP * error;
 
       // compute integral term
-      m_integral += m_KI * error * m_dt;
+      m_integral += m_KI * error * m_dt_real;
       m_integral = PID::clip(m_integral);
 
       // compute derivative term
       if (dOnM) {
-        m_derivative = -m_KD * d_PV / m_dt;
+        m_derivative = -m_KD * d_PV / m_dt_real; // m_dt
       }
       else {
-        m_derivative = m_KD * d_error / m_dt;
+        m_derivative = m_KD * d_error / m_dt_real; // m_dt
       }
 
       // comput output
@@ -124,3 +126,7 @@ void PID::compute() {
     }
   }
 }
+
+double PID::getKp() {return m_KP;}
+double PID::getKi() {return m_KI;}
+double PID::getKd() {return m_KD;}

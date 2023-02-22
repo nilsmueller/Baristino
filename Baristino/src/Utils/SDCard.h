@@ -3,6 +3,7 @@
 #include "Arduino.h"
 #include <SD.h>
 #include "../configuration.h"
+#include "../CoffeeMachine.h"
 
 bool SD_available(const __FlashStringHelper * key);
 int SD_findInt(const __FlashStringHelper * key);
@@ -18,7 +19,7 @@ void generateWarmupFileName(char *filename);
 void generateBrewFileName(char *filename);
 void generateStepFileName(char *filename);
 void openFile(File &file, char *dir);
-void writeHeader(File *file, double setTemp, double setVol, double setQty);
+void writeHeader(File *file, BrewParam *brewParameter);
 
 class SDCard {
 public:

@@ -65,7 +65,7 @@ static const double QUANTITY_MAX = 20.0;
 static const double EXTRACTION_LOADCELL_CALIBRATION_FACTOR = -1065.019512;
 
 // Thermoblocks
-static const double TEMP_WARMUP = 95.0;
+static const double TEMP_IDLE = 90.0;
 static const int PWM_RESOLUTION_SSR_THERMOBLOCK = 6;
 static const double PWM_CARRIER_FREQUENCY = 50.0f;
 static const int DS18B20_RESOLUTION_TEMPSENSOR = 10;
@@ -76,6 +76,14 @@ static const DeviceAddress DS18B20_ADDRESS[DS18B20_NUM_TEMPSENSORS] = {0x28, 0xB
 static const double GRINDER_LOADCELL_CALIBRATION_FACTOR = -1083.78536585;
 static const int STEPPER_STEPS_PER_REV = 2048;
 static const int STEPPER_RPM = 5;
+
+static const double COFFEE_SMALL = 40; // mL
+static const double COFFEE_MEDIUM = 180; // mL
+static const double COFFEE_LARGE = 180; // mL
+
+static const double COFFEE_WEAK_RATIO = 8.0/150.0; // mL / g
+static const double COFFEE_NORMAL_RATIO = 10.0/150.0;
+static const double COFFEE_STRONG_RATIO = 15.0/150.0; 
 
 // SD Card Module
 //static const char* CONFIG_FILE_NAME = "config.txt";
