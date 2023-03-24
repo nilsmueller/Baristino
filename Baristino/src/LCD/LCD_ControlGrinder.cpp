@@ -1,8 +1,6 @@
 #include "LCD.h"
 
 
-namespace LCD {
-
 
 // Grinder Control
 Adafruit_GFX_Button btn_grinder_minus;
@@ -12,8 +10,7 @@ Adafruit_GFX_Button btn_grinder_reset;
 Adafruit_GFX_Button btn_grinder_auto;
 Adafruit_GFX_Button btn_grinder_back;
 
-
-uint16_t grinderControlMenuID = 33;
+namespace LCD {
 
 GrinderState last_grinder_onoff_state = GrinderState::OFF;
 

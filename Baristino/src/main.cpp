@@ -3,6 +3,7 @@
 #define DEBUG false
 
 
+
 #if not DEBUG
 #include "CoffeeMachine.h"
 CoffeeMachine myCoffeeMachine = CoffeeMachine();
@@ -28,28 +29,26 @@ void loop() {
 
 #if DEBUG
 #include "configuration.h"
+#include "Peripherals/Grinder.h"
 
-double cur_val = 91.23;
-double set_val = 100.01;
+Grinder::Hopper m_unitGrinder = Grinder::Hopper(config::STEPPER_STEPS_PER_REV, pindef::STEPPER_1, pindef::STEPPER_2, pindef::STEPPER_3, pindef::STEPPER_4, pindef::HOPPER_LOADCELL_DOUT, pindef::HOPPER_LOADCELL_SCK, pindef::SSR_GRINDER);
 
-char curval_buffer[7];
-char setval_buffer[7];
-char value_disp[18];
+double res = 0.0f;
 
 void setup() {
-  Serial.begin(115200);
+Serial.begin(115200);
+delay(1000);
+m_unitGrinder.initialize();
+m_unitGrinder.tareScale();
+
 }
 
 void loop() {
-  dtostrf(cur_val, 5, 2, curval_buffer);
-  dtostrf(set_val, 5, 2, setval_buffer);
+  m_unitGrinder.updateScale();
+  res = m_unitGrinder.getCurrentAmount();
+  Serial.println(res);
+  delay(100);
 
-  sprintf(value_disp, "%s / %s", curval_buffer, setval_buffer);
-  Serial.print("value : ");
-  Serial.println(value_disp);
-
-  cur_val += 0.327;
-  delay(1000);
 }
 
 #endif

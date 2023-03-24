@@ -1,15 +1,13 @@
 #include "LCD.h"
 
-namespace LCD {
-
-uint16_t stepResponseMenuID = 38;
-
 Adafruit_GFX_Button btn_power_minus;
 Adafruit_GFX_Button btn_power_plus;
 Adafruit_GFX_Button btn_stepresponse_startstop;
 Adafruit_GFX_Button btn_stepresponse_pump_onoff;
 Adafruit_GFX_Button btn_stepresponse_back;
 
+
+namespace LCD {
 
 // PUMP
 void drawStepResponseMenu(ThermoBlock::PIDHeater &thermoblock, WaterControl::Pump &pump) {

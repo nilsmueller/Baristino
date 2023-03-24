@@ -1,9 +1,5 @@
 #include "LCD.h"
 
-
-namespace LCD {
-
-
 // Pump Control
 Adafruit_GFX_Button btn_pump_minus;
 Adafruit_GFX_Button btn_pump_plus;
@@ -12,8 +8,8 @@ Adafruit_GFX_Button btn_pump_reset;
 Adafruit_GFX_Button btn_pump_auto;
 Adafruit_GFX_Button btn_pump_back;
 
+namespace LCD {
 
-uint16_t pumpControlMenuID = 34;
 
 WaterControl::WCState last_pump_onoff_state = WaterControl::WCState::OFF;
 
@@ -51,7 +47,6 @@ void pumpControlUpdateCurrentVolume(double volume) {
 
 // PUMP
 void drawPumpControlMenu(WaterControl::Pump &pump) {
-    //drawEmptyScreen();
     drawEmptyScreenDouble();
 
     char btnLabel[9][7] = {"-", "+", "Back", "Reset", "On", "Off", "Auto", "Manual", "On/Off"};
@@ -130,12 +125,10 @@ uint16_t updatePumpControlMenu(WaterControl::Pump &pump) {
     if (pump.isOn()) {
         btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myGREEN, myWHITE, btnLabel[0], 3);
         btn_pump_onoff.drawButton(false);
-        //last_pump_onoff_state = WaterControl::WCState::ON;
     }
     else {
         btn_pump_onoff.initButtonUL(&tft, LCD_WIDTH - 2*LCD_BORDER - 2*LCD_PAD - 120, 2*LCD_PAD + 2*LCD_BORDER, 120, LCD_TOPBAR_HEIGHT-2*LCD_PAD, myWHITE, myRED, myWHITE, btnLabel[1], 3);
         btn_pump_onoff.drawButton(false);
-        //last_pump_onoff_state = WaterControl::WCState::OFF;
     }
 
 
@@ -194,7 +187,7 @@ uint16_t updatePumpControlMenu(WaterControl::Pump &pump) {
     if (btn_pump_back.justPressed()) {
         btn_pump_back.drawButton(true);
         //*pumpStatus = PumpState::OFF;
-        menuID = LCD::controlMenuID;
+        menuID = controlMenuID;
     }
 
 

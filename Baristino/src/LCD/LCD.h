@@ -74,11 +74,16 @@ extern const int LCD_MAIN_HEIGHT;
 
 extern int touch_pixel_x, touch_pixel_y;
 
-extern uint16_t controlMenuID;
-extern uint16_t pumpControlMenuID;
-extern uint16_t grinderControlMenuID;
-extern uint16_t thermoblockControlMenuID;
-extern uint16_t stepResponseMenuID;
+const uint16_t mainMenuID = 0;
+const uint16_t simpleCoffeeMenuID = 1;
+const uint16_t customCoffeeMenuID = 2;
+const uint16_t controlMenuID = 3;
+const uint16_t pumpControlMenuID = 34;
+const uint16_t grinderControlMenuID = 33;
+const uint16_t thermoblockControlMenuID = 31;
+const uint16_t makeCoffeeScreenID = 21;
+
+const uint16_t stepResponseMenuID = 38;
 
 extern MCUFRIEND_kbv tft;
 

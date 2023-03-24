@@ -4,6 +4,108 @@
 #define KEY_MAX_LENGTH    30 // change it if key is longer
 #define VALUE_MAX_LENGTH  30 // change it if value is longer
 
+
+
+mySDCard::mySDCard(uint8_t pinChipSelect) : m_pinCS(pinChipSelect) {
+}
+
+
+void mySDCard::initialize() {
+  if (SD.begin(m_pinCS)) {
+    m_isAvailabe = true;
+    Serial.println("SD Card is present and ready.");
+  }
+  else {
+    Serial.println("ERROR : SD Card can not be found");
+  }
+}
+
+
+bool mySDCard::isAvailable() {
+  return m_isAvailabe;
+}
+
+
+void mySDCard::getConfiguration(config::general *conf) {
+  if (isAvailable()) {
+    conf->num_beverages = SD_findInt(F("num_beverages"));
+    conf->sum_quantity = SD_findFloat(F("sum_quantity"));
+    conf->sum_volume = SD_findFloat(F("sum_volume"));
+    conf->set_tmp = SD_findFloat(F("set_tmp"));
+    conf->set_vol = SD_findFloat(F("set_vol"));
+    conf->set_qty = SD_findFloat(F("set_qty"));
+    conf->set_preinf = SD_findFloat(F("set_preinf"));
+    
+  }
+}
+
+
+
+
+void mySDCard::setupWarmupFile() {
+  if (isAvailable()) {
+    char filename[17];
+    generateWarmupFileName(filename);
+    m_file = SD.open(filename, FILE_WRITE);
+    m_file.println("time,temperature,set_temperature,duty_cycle,quantity,volume");
+  }
+}
+
+void mySDCard::setupBrewFile(BrewParam *brewParameter) {
+  if (isAvailable()) {
+    char filename[17];
+    generateBrewFileName(filename);
+    m_file = SD.open(filename, FILE_WRITE);
+
+    // write header
+    m_file.print("set_temperature,");
+    m_file.println(brewParameter->set_temperature);
+    m_file.print("set_volume,");
+    m_file.println(brewParameter->set_volume);
+    m_file.print("set_dose,");
+    m_file.println(brewParameter->set_dose);
+
+    // write column names
+    m_file.println("time,temperature,set_temperature,duty_cycle,quantity,volume");
+  }
+}
+
+
+
+void mySDCard::writeFile(BrewParam *brewParameter) {
+  if (isAvailable()) {
+    if (m_file) {
+      m_file.print(millis());
+      m_file.print(",");
+      m_file.print(brewParameter->current_temperature);
+      m_file.print(",");
+      m_file.print(brewParameter->set_temperature);
+      m_file.print(",");
+      m_file.print(brewParameter->current_dutyCycle);
+      m_file.print(",");
+      m_file.print(brewParameter->current_dose);
+      m_file.print(",");
+      m_file.print(brewParameter->current_volume);
+      m_file.println();
+    }
+    else {
+      Serial.println("Error opening File");
+    }
+  }
+}
+
+
+void mySDCard::close() {
+  if (isAvailable() && m_file) {
+    m_file.close();
+  }
+}
+
+
+
+
+
+
 bool SD_available(const __FlashStringHelper * key) {
   char value_string[VALUE_MAX_LENGTH];
   int value_length = SD_findKey(key, value_string);
@@ -172,42 +274,3 @@ void generateStepFileName(char *filename) {
 }
 
 
-void writeHeader(File *file, BrewParam *brewParameter) {
-  file->print("set_temperature,");
-  file->println(brewParameter->set_temperature);
-  file->print("set_volume,");
-  file->println(brewParameter->set_volume);
-  file->print("set_dose,");
-  file->println(brewParameter->set_dose);
-}
-
-
-SDCard::SDCard(uint8_t pinChipSelect) : m_pinCS(pinChipSelect)
-{
-  if (SD.begin(m_pinCS)) {
-    m_isAvailabe = true;
-    Serial.println("SD Card is present and ready.");
-  }
-  else {
-    Serial.println("ERROR : SD Card can not be found");
-  }
-}
-
-
-bool SDCard::isAvailable() {
-  return m_isAvailabe;
-}
-
-
-void SDCard::getConfiguration(config::general *conf) {
-  if (isAvailable()) {
-    conf->num_beverages = SD_findInt(F("num_beverages"));
-    conf->sum_quantity = SD_findFloat(F("sum_quantity"));
-    conf->sum_volume = SD_findFloat(F("sum_volume"));
-    conf->set_tmp = SD_findFloat(F("set_tmp"));
-    conf->set_vol = SD_findFloat(F("set_vol"));
-    conf->set_qty = SD_findFloat(F("set_qty"));
-    conf->set_preinf = SD_findFloat(F("set_preinf"));
-    
-  }
-}

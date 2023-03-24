@@ -53,6 +53,11 @@ void PID::setTunings(double Kp, double Ki, double Kd) {
   m_KP = Kp;
   m_KI = Ki;
   m_KD = Kd;
+
+  // TEST
+  m_proportional = 0.0;
+  m_integral = 0.0;
+  m_derivative = 0.0;
 }
 
 

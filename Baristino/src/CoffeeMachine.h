@@ -7,20 +7,9 @@
 #include "WProgramm.h"
 #endif
 
-struct BrewParam {
-    double set_temperature = 93.0f;
-    double set_volume = 150.0;
-    double set_dose = 12.0;
-
-    double current_temperature = 0.0;
-    double current_volume = 0.0f;
-    double current_dose = 0.0f;
-
-    double start_temperature;
-};
-
 
 #include "configuration.h"
+#include "Utils/utils.h"
 #include "statusTools.h"
 #include "LCD/LCD.h"
 #include "Peripherals/ThermoBlock.h"
@@ -30,7 +19,7 @@ struct BrewParam {
 #include "Peripherals/Pump.h"
 
 #include <SPI.h>
-#include <SD.h>
+//#include <SD.h>
 #include "Utils/SDCard.h"
 
 
@@ -47,6 +36,7 @@ enum class MachineState : uint8_t {
     BREWGROUP_HOME,
     GRINDER_HOME,
     RETURN_TO_IDLE,
+    FLUSHING,
 };
 
 
@@ -63,13 +53,12 @@ class CoffeeMachine {
         void printSensorValues();
         void updateLCD();
 
-        void writeToFile();
-
     private:
         ThermoBlock::PIDHeater m_unitThermoBlock;
         WaterControl::Pump m_unitPump;
         Grinder::Hopper m_unitGrinder;
         BrewGroup::Ensemble m_unitBrewGroup;
+        mySDCard m_sdCard;
 
         int16_t m_brewGroupPosition;
         double m_brewGroupCurrent;
@@ -94,6 +83,7 @@ class CoffeeMachine {
         void updateVolume();
         void updateDose();
         void updateBrewGroup();
+
 };
 
 #endif

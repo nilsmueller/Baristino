@@ -67,7 +67,8 @@ void PIDHeater::setupTempSensor() {
 
 void PIDHeater::requestTemp() {
   if ( millis() - m_lastTempRequest > m_tempSensorsDelay) {
-    double temp = m_tempSensor.getTempCByIndex(0);;//getTempC(config::DS18B20_ADDRESS[0]);
+    //double temp = m_tempSensor.getTempCByIndex(0);
+    double temp = m_tempSensor.getTempC(config::DS18B20_ADDRESS_THERMOBLOCK);
   
     if (temp == DEVICE_DISCONNECTED_C) {
       Serial.println("ERROR : DEVICE_DISCONNECTED_C");
@@ -167,11 +168,23 @@ void PIDHeater::update() {
 
 
 void PIDHeater::switchMode(TBMode mode) {
-  if (mode == TBMode::WARMUP) {
-    setPIDConstants(2.3, 0.0, 45.0);
-  }
-  else {
-    setPIDConstants(100, 1.0, 0.0);
+  switch (mode)
+  {
+  case TBMode::WARMUP:
+    setPIDConstants(3.0, 1e-6, 0.0);
+    break;
+
+  case TBMode::IDLE:
+    setPIDConstants(3.0, 1e-6, 0.0);
+    break;
+
+  case TBMode::PREBREW:
+    setPIDConstants(5.0, 1e-5, 0.0);
+    break;
+
+  case TBMode::BREW:
+    setPIDConstants(100.0, 1.0, 0.0);
+    break;
   }
   m_mode = mode;
 }
@@ -201,6 +214,11 @@ void PIDHeater::setPIDConstants(double Kp, double Ki, double Kd) {
 }
 
 
+void PIDHeater::heatTo(double temperature, TBMode mode) {
+  setTemperature(temperature);
+  switchMode(mode);
+  startPIDControl();
+}
 
 
 void PIDHeater::updatePIDControl() {

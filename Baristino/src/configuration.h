@@ -70,7 +70,7 @@ static const int PWM_RESOLUTION_SSR_THERMOBLOCK = 6;
 static const double PWM_CARRIER_FREQUENCY = 50.0f;
 static const int DS18B20_RESOLUTION_TEMPSENSOR = 10;
 static const int DS18B20_NUM_TEMPSENSORS = 1;
-static const DeviceAddress DS18B20_ADDRESS[DS18B20_NUM_TEMPSENSORS] = {0x28, 0xB3, 0x39, 0x75, 0xD0, 0x01, 0x3C, 0xDE};
+static const uint8_t  DS18B20_ADDRESS_THERMOBLOCK[8] = { 0x28, 0xC9, 0x49, 0x75, 0xD0, 0x01, 0x3C, 0xE4 };;
 
 // Grinder
 static const double GRINDER_LOADCELL_CALIBRATION_FACTOR = -1083.78536585;
@@ -78,7 +78,7 @@ static const int STEPPER_STEPS_PER_REV = 2048;
 static const int STEPPER_RPM = 5;
 
 static const double COFFEE_SMALL = 40; // mL
-static const double COFFEE_MEDIUM = 180; // mL
+static const double COFFEE_MEDIUM = 150; // mL
 static const double COFFEE_LARGE = 180; // mL
 
 static const double COFFEE_WEAK_RATIO = 8.0/150.0; // mL / g
