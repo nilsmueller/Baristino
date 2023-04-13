@@ -2,8 +2,28 @@
 
 #include "Arduino.h"
 #include <SD.h>
-#include "../configuration.h"
-#include "../CoffeeMachine.h"
+#include "utils.h"
+
+class mySDCard {
+public:
+    mySDCard(uint8_t pinChipSelect);
+    void initialize();
+    bool isAvailable();
+    void close();
+    void getConfiguration(config::general *conf);
+    //void updateConfiguration(config::general *conf);
+    //void writeConfiguration(config::general *conf);
+
+    void setupWarmupFile();
+    void setupBrewFile(BrewParam *brewParameter);
+    void writeFile(BrewParam *brewParameter);
+
+private:
+    File m_file;
+    uint8_t m_pinCS;
+    bool m_isAvailabe = false;
+};
+
 
 bool SD_available(const __FlashStringHelper * key);
 int SD_findInt(const __FlashStringHelper * key);
@@ -18,22 +38,3 @@ uint8_t getNumOfFiles(char *dir);
 void generateWarmupFileName(char *filename);
 void generateBrewFileName(char *filename);
 void generateStepFileName(char *filename);
-void openFile(File &file, char *dir);
-void writeHeader(File *file, BrewParam *brewParameter);
-
-class SDCard {
-public:
-    SDCard(uint8_t pinChipSelect);
-    bool isAvailable();
-    void open();
-    void close();
-    void getConfiguration(config::general *conf);
-    void updateConfiguration(config::general *conf);
-    void writeConfiguration(config::general *conf);
-    void writeBrewFile();
-    void writeStepFile();
-
-private:
-    uint8_t m_pinCS;
-    bool m_isAvailabe = false;
-};

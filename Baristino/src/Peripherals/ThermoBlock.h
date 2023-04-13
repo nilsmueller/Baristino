@@ -35,7 +35,9 @@ enum class TBState : uint8_t {
 };
 
 enum class TBMode : uint8_t {
+  IDLE,
   WARMUP,
+  PREBREW,
   BREW,
 };
 
@@ -70,6 +72,8 @@ class PIDHeater{
   double getPIDKp();
   double getPIDKi();
   double getPIDKd();
+
+  void heatTo(double temperature, TBMode mode);
 
   void switchMode(TBMode mode);
 
@@ -111,7 +115,7 @@ class PIDHeater{
   double m_pidOutput;
   double m_pidSetpoint;
   double m_pidLastInputs[10] = {};
-  double m_pidSetpointTolerance = 1.0f;
+  double m_pidSetpointTolerance = 0.25f;
 
 
   double m_Kp = 2.2;

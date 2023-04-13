@@ -7,20 +7,9 @@
 #include "WProgramm.h"
 #endif
 
-struct BrewParam {
-    double set_temperature = 93.0f;
-    double set_volume = 150.0;
-    double set_dose = 12.0;
-
-    double current_temperature = 0.0;
-    double current_volume = 0.0f;
-    double current_dose = 0.0f;
-
-    double start_temperature;
-};
-
 
 #include "configuration.h"
+#include "Utils/utils.h"
 #include "statusTools.h"
 #include "LCD/LCD.h"
 #include "Peripherals/ThermoBlock.h"
@@ -30,8 +19,13 @@ struct BrewParam {
 #include "Peripherals/Pump.h"
 
 #include <SPI.h>
-#include <SD.h>
+//#include <SD.h>
 #include "Utils/SDCard.h"
+
+// TODO 1. create return-to-idle routine
+// TODO 2. create possibility to interrupt brew process
+// TODO 3. add EggTimer class
+// TODO 4. 
 
 
 enum class MachineState : uint8_t {
@@ -43,10 +37,12 @@ enum class MachineState : uint8_t {
     GRINDING,
     BREWGROUP_INSERTION,
     TAMPERING,
+    PREINFUSION,
     EXTRACTION,
     BREWGROUP_HOME,
     GRINDER_HOME,
     RETURN_TO_IDLE,
+    FLUSHING,
 };
 
 
@@ -57,19 +53,19 @@ class CoffeeMachine {
         CoffeeMachine();
         void initialize();
         void warmup();
+        void flush();
         void makeCoffee();
         void createStepResponse(double stepPower, bool waterFlow);
         void updateSensors();
         void printSensorValues();
         void updateLCD();
 
-        void writeToFile();
-
     private:
         ThermoBlock::PIDHeater m_unitThermoBlock;
         WaterControl::Pump m_unitPump;
         Grinder::Hopper m_unitGrinder;
         BrewGroup::Ensemble m_unitBrewGroup;
+        mySDCard m_sdCard;
 
         int16_t m_brewGroupPosition;
         double m_brewGroupCurrent;
@@ -81,7 +77,10 @@ class CoffeeMachine {
 
         MachineState m_currentState = MachineState::IDLE;
 
+        // will be ubundant when eggTimer is implemented
         unsigned long m_grinderFlapOpenedTimestamp;
+        unsigned long m_preinfusionTimestamp;
+        EggTimer m_timer = EggTimer();
 
         File m_file;
         bool m_SDCardEnabled = false;
@@ -94,6 +93,11 @@ class CoffeeMachine {
         void updateVolume();
         void updateDose();
         void updateBrewGroup();
+
+        //
+        //
+        void returnToIdle();
+
 };
 
 #endif

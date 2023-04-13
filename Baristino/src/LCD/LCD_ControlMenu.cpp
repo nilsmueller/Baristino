@@ -1,16 +1,14 @@
 #include "LCD.h"
 #include "../configuration.h"
 
-namespace LCD {
-
 Adafruit_GFX_Button btn_control_thermoblock;
 Adafruit_GFX_Button btn_control_brewgroup;
 Adafruit_GFX_Button btn_control_grinder;
 Adafruit_GFX_Button btn_control_pump;
 Adafruit_GFX_Button btn_control_back;
 
-uint16_t controlMenuID = 3;
 
+namespace LCD {
 
 void drawControlMenu() {
     drawEmptyScreen();

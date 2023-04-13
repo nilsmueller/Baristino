@@ -1,14 +1,11 @@
 #include "LCD.h"
 
 
-namespace LCD {
-
-uint16_t thermoblockControlMenuID = 31;
-
 Adafruit_GFX_Button btn_thermoblock_pid;
 Adafruit_GFX_Button btn_thermoblock_stepresponse;
 Adafruit_GFX_Button btn_thermoblock_back;
 
+namespace LCD {
 
 // PUMP
 void drawThermoControlMenu() {

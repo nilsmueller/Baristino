@@ -114,7 +114,9 @@ class Ensemble {
         bool isMovingUp();
         bool isMovingDown();
         bool isStalled();
-        BGState State();
+        
+        BGState getCurrentState();
+        BGState getLastState();
 
         void moveDown();
         void moveUp();
@@ -124,6 +126,11 @@ class Ensemble {
         bool checkIfHomed();
         bool checkIfOpened();
         bool checkIfPressed();
+
+        void home();
+        void open();
+        void press();
+
 
         
     private:

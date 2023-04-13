@@ -1,13 +1,12 @@
 #include "LCD.h"
 
-namespace LCD {
-
 // Buttons Main Menu
 Adafruit_GFX_Button btn_main_coffee;
 Adafruit_GFX_Button btn_main_custom;
 Adafruit_GFX_Button btn_main_control;
 Adafruit_GFX_Button btn_main_settings;
 
+namespace LCD {
 
 void drawMainMenu() {
     drawEmptyScreen();
@@ -46,7 +45,7 @@ void drawMainMenu() {
 // which is the ID of the Main Menu.
 uint16_t updateMainMenu() {
   bool isTouched = getTouchCoord();
-  uint8_t menuID = 0;
+  uint8_t menuID = mainMenuID;
   btn_main_coffee.press(isTouched && btn_main_coffee.contains(touch_pixel_x, touch_pixel_y));
   btn_main_custom.press(isTouched && btn_main_custom.contains(touch_pixel_x, touch_pixel_y));
   btn_main_control.press(isTouched && btn_main_control.contains(touch_pixel_x, touch_pixel_y));
@@ -57,7 +56,7 @@ uint16_t updateMainMenu() {
     btn_main_coffee.drawButton(false);
   }
   if (btn_main_coffee.justPressed()) {
-    menuID = 1;
+    menuID = simpleCoffeeMenuID;
     btn_main_coffee.drawButton(true);
   }
   
@@ -66,7 +65,7 @@ uint16_t updateMainMenu() {
     btn_main_custom.drawButton(false);
   }
   if (btn_main_custom.justPressed()) {
-    menuID = 2;
+    menuID = customCoffeeMenuID;
     btn_main_custom.drawButton(true);
   }
   
@@ -75,7 +74,7 @@ uint16_t updateMainMenu() {
     btn_main_control.drawButton(false);
   }
   if (btn_main_control.justPressed()) {
-    menuID = 3;
+    menuID = controlMenuID;
     btn_main_control.drawButton(true);
   }
 
@@ -84,7 +83,7 @@ uint16_t updateMainMenu() {
     btn_main_settings.drawButton(false);
   }
   if (btn_main_settings.justPressed()) {
-    menuID = 0;//4;
+    menuID = mainMenuID;
     btn_main_settings.drawButton(true);
   }
 

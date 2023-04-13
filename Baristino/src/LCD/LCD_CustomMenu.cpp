@@ -1,9 +1,6 @@
 #include "LCD.h"
 #include "../configuration.h"
 
-namespace LCD {
-
-uint8_t customMenuID = 2;
 
 Adafruit_GFX_Button btn_coffee_vol_plus;
 Adafruit_GFX_Button btn_coffee_vol_minus;
@@ -13,6 +10,9 @@ Adafruit_GFX_Button btn_coffee_qty_plus;
 Adafruit_GFX_Button btn_coffee_qty_minus;
 Adafruit_GFX_Button btn_coffee_back;
 Adafruit_GFX_Button btn_coffee_go;
+
+
+namespace LCD {
 
 void settingsMenuUpdateVolume(double value, double *volume) {
 
@@ -139,7 +139,7 @@ uint16_t updateCustomMenu(BrewParam *brewParameter) {
 //double *volume, double *temperature, double *quantity) {
     bool isTouched = getTouchCoord();
 
-    uint16_t menuID = customMenuID;
+    uint16_t menuID = customCoffeeMenuID;
     btn_coffee_vol_minus.press(isTouched && btn_coffee_vol_minus.contains(touch_pixel_x, touch_pixel_y));
     btn_coffee_vol_plus.press(isTouched && btn_coffee_vol_plus.contains(touch_pixel_x, touch_pixel_y));
     btn_coffee_tmp_minus.press(isTouched && btn_coffee_tmp_minus.contains(touch_pixel_x, touch_pixel_y));

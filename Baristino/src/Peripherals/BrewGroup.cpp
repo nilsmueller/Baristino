@@ -100,7 +100,8 @@ bool Ensemble::isMovingUp() {return m_currentState == BGState::MOVINGUP;}
 bool Ensemble::isMovingDown() {return m_currentState == BGState::MOVINGDOWN;}
 bool Ensemble::isIdle() {return !isMoving();}
 
-BGState Ensemble::State() {return m_currentState;}
+BGState Ensemble::getCurrentState() {return m_currentState;}
+BGState Ensemble::getLastState() {return m_lastState;}
 
 
 
@@ -125,7 +126,37 @@ double Ensemble::getCurrent() {
     return m_ampmeter.readCurrent();
 }
 
+
+void Ensemble::home() {
+    if (!isHome()) {
+        if (!isMovingUp()) {
+            moveUp();
+        }
+        else {
+            checkIfHomed();
+        }
+    }
 }
+
+
+void Ensemble::open() {
+    // always has to home before opening
+}
+
+void Ensemble::press() {
+    if (!isPress()) {
+        if (!isMovingDown()) {
+            moveDown();
+        }
+        else {
+            checkIfPressed();
+        }
+    }
+}
+
+
+}
+
 
 
 

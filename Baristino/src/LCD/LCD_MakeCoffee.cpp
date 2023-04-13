@@ -1,9 +1,8 @@
 #include "LCD.h"
 
-namespace LCD {
 int cProgBarX = 40;
 int cProgBarY = 250;
-int cProgBarW = LCD_WIDTH - 2*cProgBarX;    // total width of progbar (with bounds)
+int cProgBarW = LCD::LCD_WIDTH - 2*cProgBarX;    // total width of progbar (with bounds)
 int cProgBarH = 40;                     // total height of progbar (with bounds)
 
 int cProgBarWInner = cProgBarW - 4;     // inner width of progbar (without bounds)
@@ -14,14 +13,14 @@ int cProgBarW1 = (int)floor((cProgBarWInner + cProgBarRem) / 3);
 int cProgBarW2 = cProgBarW1;
 int cProgBarW3 = cProgBarWInner - cProgBarW1 - cProgBarW2;
 
-uint16_t makeCoffeeScreenID = 21;
-
 char temp_cur_buffer[7];
 char temp_disp[18];
 char vol_cur_buffer[7];
 char vol_disp[18];
 char dose_cur_buffer[7];
 char dose_disp[18];
+
+namespace LCD {
 
 
 void drawMakeCoffeeScreen(BrewParam *process) {
@@ -39,39 +38,40 @@ void drawMakeCoffeeScreen(BrewParam *process) {
     tft.setTextColor(myWHITE);
     tft.setTextSize(3);
 
-    tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
     tft.print("Coffee [g]");
 
-    tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_PAD, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
     tft.print("Temp.  [C]");  
 
-    tft.setCursor(LCD_MAIN_ORIGIN_X, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_PAD, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
     tft.print("Water [mL]");  
 
     // dose
     tft.setTextColor(myYELLOW, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20 + LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
     tft.print((int)process->current_dose);
     tft.print(" / ");
     tft.print((int)process->set_dose);
 
     // temperature
     tft.setTextColor(myORANGE, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20 + LCD_PAD, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
     tft.print((int)process->current_temperature);
     tft.print(" / ");
     tft.print((int)process->set_temperature);
 
     // volume
     tft.setTextColor(myBLUE, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20 + LCD_PAD, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
     tft.print((int)process->current_volume);
     tft.print(" / ");
     tft.print((int)process->set_volume);
 
-
+    /*
     tft.drawRect(cProgBarX, cProgBarY, cProgBarW, cProgBarH, myWHITE);
     tft.drawRect(cProgBarX+1, cProgBarY+1, cProgBarW-2, cProgBarH-2, myWHITE);
+    */
 }
 
 
@@ -79,7 +79,7 @@ uint16_t updateMakeCoffeeScreen(BrewParam *process) {
     // quantity
     tft.setTextSize(3);
     tft.setTextColor(myYELLOW, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20 + LCD_PAD, LCD_MAIN_ORIGIN_Y + 2*LCD_PAD + 20);
     dtostrf(process->current_dose, 5, 2, dose_cur_buffer);
     sprintf(dose_disp, "%s / %d", dose_cur_buffer, (int)process->set_dose);
     tft.print(dose_disp);
@@ -87,7 +87,7 @@ uint16_t updateMakeCoffeeScreen(BrewParam *process) {
     // temperature
     tft.setTextSize(3);
     tft.setTextColor(myORANGE, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20 + LCD_PAD, LCD_MAIN_ORIGIN_Y + 9*LCD_PAD + 20);
     dtostrf(process->current_temperature, 5, 2, temp_cur_buffer);
     sprintf(temp_disp, "%s / %d", temp_cur_buffer, (int)process->set_temperature);
     tft.print(temp_disp);
@@ -96,11 +96,12 @@ uint16_t updateMakeCoffeeScreen(BrewParam *process) {
     // volume
     tft.setTextSize(3);
     tft.setTextColor(myBLUE, myBLACK);
-    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
+    tft.setCursor(LCD_MAIN_ORIGIN_X + LCD_MAIN_WIDTH/2 - 20 + LCD_PAD, LCD_MAIN_ORIGIN_Y + 16*LCD_PAD + 20);
     dtostrf(process->current_volume, 5, 2, vol_cur_buffer);
     sprintf(vol_disp, "%s / %d", vol_cur_buffer, (int)process->set_volume);
     tft.print(vol_disp);
 
+    /*
     // dose
     double p1 = max(0, min(1, process->current_dose / process->set_dose));
     double val = abs((process->set_temperature - process->current_temperature) / (process->set_temperature - process->start_temperature));
@@ -122,6 +123,7 @@ uint16_t updateMakeCoffeeScreen(BrewParam *process) {
     //tft.fillRect(x3, cProgBarY+2, w3, cProgBarHInner, (p3 < 1) ? myBLUE : myDARKGREEN);
     //tft.fillRect(x3+w3, cProgBarY+2, cProgBarWInner-w1-w2-w3, cProgBarHInner, myBLACK);
     tft.fillRect(x1, cProgBarY+2, w_total, cProgBarHInner, myDARKGREEN);
+    */
 
     return makeCoffeeScreenID;
 }
