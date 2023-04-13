@@ -22,6 +22,11 @@
 //#include <SD.h>
 #include "Utils/SDCard.h"
 
+// TODO 1. create return-to-idle routine
+// TODO 2. create possibility to interrupt brew process
+// TODO 3. add EggTimer class
+// TODO 4. 
+
 
 enum class MachineState : uint8_t {
     IDLE,
@@ -32,6 +37,7 @@ enum class MachineState : uint8_t {
     GRINDING,
     BREWGROUP_INSERTION,
     TAMPERING,
+    PREINFUSION,
     EXTRACTION,
     BREWGROUP_HOME,
     GRINDER_HOME,
@@ -47,6 +53,7 @@ class CoffeeMachine {
         CoffeeMachine();
         void initialize();
         void warmup();
+        void flush();
         void makeCoffee();
         void createStepResponse(double stepPower, bool waterFlow);
         void updateSensors();
@@ -70,7 +77,10 @@ class CoffeeMachine {
 
         MachineState m_currentState = MachineState::IDLE;
 
+        // will be ubundant when eggTimer is implemented
         unsigned long m_grinderFlapOpenedTimestamp;
+        unsigned long m_preinfusionTimestamp;
+        EggTimer m_timer = EggTimer();
 
         File m_file;
         bool m_SDCardEnabled = false;
@@ -83,6 +93,10 @@ class CoffeeMachine {
         void updateVolume();
         void updateDose();
         void updateBrewGroup();
+
+        //
+        //
+        void returnToIdle();
 
 };
 

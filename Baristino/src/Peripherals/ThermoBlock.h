@@ -115,7 +115,7 @@ class PIDHeater{
   double m_pidOutput;
   double m_pidSetpoint;
   double m_pidLastInputs[10] = {};
-  double m_pidSetpointTolerance = 1.0f;
+  double m_pidSetpointTolerance = 0.25f;
 
 
   double m_Kp = 2.2;

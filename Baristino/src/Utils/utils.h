@@ -22,3 +22,25 @@ struct BrewParam {
     double start_temperature;
     double current_dutyCycle = 0.0;
 };
+
+
+class EggTimer {
+    public:
+    EggTimer();
+    EggTimer(unsigned long duration_ms);
+
+    void setDurationMS(unsigned long duration_ms);
+    unsigned long getDurationMS();
+    unsigned long getLeftDurationMS();
+    void startTimer();
+    void stopTimer();
+    void resetTimer();
+    bool isActive();
+    bool isFinished();
+
+    private:
+    unsigned long m_startTimeMS;
+    unsigned long m_durationMS;
+    bool m_isFinished = false;
+    bool m_isActive = false;
+};

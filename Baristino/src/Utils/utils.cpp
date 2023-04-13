@@ -51,3 +51,62 @@ void findDS18B20Sensors(const uint8_t busPin) {
 		}
   }
 }
+
+
+
+EggTimer::EggTimer() {
+}
+
+
+EggTimer::EggTimer(unsigned long duration_MS) : m_durationMS(duration_MS) {}
+
+
+void EggTimer::setDurationMS(unsigned long duration_MS) {
+  m_durationMS = duration_MS;
+}
+
+
+unsigned long EggTimer::getDurationMS() {
+  return m_durationMS;
+}
+
+
+unsigned long EggTimer::getLeftDurationMS() {
+  if (isActive()) {
+    return m_startTimeMS + m_durationMS - millis();
+  }
+  else {
+    return 0;
+  }
+}
+
+
+void EggTimer::startTimer() {
+  m_isActive = true;
+}
+
+
+void EggTimer::stopTimer() {
+  m_isActive = false;
+}
+
+
+void EggTimer::resetTimer() {
+  if (isActive()) {
+    m_startTimeMS = millis();
+  }
+}
+
+
+
+bool EggTimer::isActive() {
+  return m_isActive;
+}
+
+
+bool EggTimer::isFinished() {
+  if (isActive()) {
+    return (millis() - m_startTimeMS > m_durationMS) ? true : false;
+  }
+}
+
