@@ -29,6 +29,7 @@ const int TS_TOP = 913;
 const int TS_BOT = 110;
 
 
+//TouchScreen ts = TouchScreen(pindef::LCD_XP, pindef::LCD_YP, pindef::LCD_XM, pindef::LCD_YM, 300);
 TouchScreen ts = TouchScreen(pindef::LCD_XP, pindef::LCD_YP, pindef::LCD_XM, pindef::LCD_YM, 300);
 MCUFRIEND_kbv tft;
 
@@ -37,8 +38,12 @@ void initialize() {
   uint16_t ID = tft.readID();
   if (ID == 0xD3D3) ID = 0x9486; // write-only shield
   tft.begin(ID);
-  tft.setRotation(1);            //PORTRAIT
-  //drawWarmUpScreen();
+  if (LCD_ROTATE) {
+    tft.setRotation(3);
+  }
+  else {
+    tft.setRotation(1);
+  }            
 }
 
 
@@ -102,8 +107,14 @@ bool getTouchCoord(void) {
 
     bool pressed = (p.z > MINPRESSURE && p.z < MAXPRESSURE);
     if (pressed) {
-        touch_pixel_x = map(p.y, TS_LEFT, TS_RT, 0, tft.width());
-        touch_pixel_y = map(p.x, TS_TOP, TS_BOT, 0, tft.height());
+        if (LCD_ROTATE) {
+          touch_pixel_x = map(p.y, TS_RT, TS_LEFT, 0, tft.width());
+          touch_pixel_y = map(p.x, TS_BOT, TS_TOP, 0, tft.height());
+        }
+        else {
+          touch_pixel_x = map(p.y, TS_LEFT, TS_RT, 0, tft.width());
+          touch_pixel_y = map(p.x, TS_TOP, TS_BOT, 0, tft.height());
+        }
     }
     return pressed;
 }

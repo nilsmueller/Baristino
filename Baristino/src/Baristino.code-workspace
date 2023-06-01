@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "FiniteStateMachine",
+			"path": "../../FiniteStateMachine"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdexcept": "cpp",
+			"string": "cpp"
+		}
+	}
+}

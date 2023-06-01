@@ -9,6 +9,11 @@
 CoffeeMachine myCoffeeMachine = CoffeeMachine();
 
 void setup() {
+  // STBY Button
+  pinMode(pindef::STDBY_BTN_IN, INPUT);
+  pinMode(pindef::STDBY_BTN_VCC, OUTPUT);
+  digitalWrite(pindef::STDBY_BTN_VCC, HIGH);
+  
   Serial.begin(115200);
   delay(1000);
 
@@ -18,37 +23,46 @@ void setup() {
   myCoffeeMachine.initialize();
   myCoffeeMachine.warmup();
 
+
 }
 
+int button_state;
+
 void loop() { 
+
+  button_state = digitalRead(pindef::STDBY_BTN_IN);
   myCoffeeMachine.updateSensors();
+
+  Serial.print("BT: ");
+  Serial.print(button_state);
   myCoffeeMachine.printSensorValues();
   myCoffeeMachine.updateLCD();
 }
+
+
 #endif
 
+
+
+
+
+
 #if DEBUG
-#include "configuration.h"
-#include "Peripherals/Grinder.h"
+#include "Utils/debug.h"
 
-Grinder::Hopper m_unitGrinder = Grinder::Hopper(config::STEPPER_STEPS_PER_REV, pindef::STEPPER_1, pindef::STEPPER_2, pindef::STEPPER_3, pindef::STEPPER_4, pindef::HOPPER_LOADCELL_DOUT, pindef::HOPPER_LOADCELL_SCK, pindef::SSR_GRINDER);
+// set debug mode
+DEBUGMODE mode = DEBUGMODE::ONOFFBUTTON_01;
 
-double res = 0.0f;
 
 void setup() {
-Serial.begin(115200);
-delay(1000);
-m_unitGrinder.initialize();
-m_unitGrinder.tareScale();
+  Serial.begin(115200);
+  delay(1000);
 
+  debug(mode, true);
 }
 
 void loop() {
-  m_unitGrinder.updateScale();
-  res = m_unitGrinder.getCurrentAmount();
-  Serial.println(res);
-  delay(100);
-
+  debug(mode, false);
 }
 
 #endif

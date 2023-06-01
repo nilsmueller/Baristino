@@ -38,6 +38,7 @@ enum class MachineState : uint8_t {
     BREWGROUP_INSERTION,
     TAMPERING,
     PREINFUSION,
+    PREINFUSION_PAUSE,
     EXTRACTION,
     BREWGROUP_HOME,
     GRINDER_HOME,
@@ -70,6 +71,12 @@ class CoffeeMachine {
         int16_t m_brewGroupPosition;
         double m_brewGroupCurrent;
 
+        // STBY Button
+        void checkStandby();
+        void goSleep();
+        void wakeUp();
+        long m_awakeSince;
+
         // Menu
         uint8_t m_currentMenuID = 0; // ID of the current Menu
         uint16_t m_newMenuID = 0;     // variable that stores the ID of a potential new Menu
@@ -77,9 +84,7 @@ class CoffeeMachine {
 
         MachineState m_currentState = MachineState::IDLE;
 
-        // will be ubundant when eggTimer is implemented
-        unsigned long m_grinderFlapOpenedTimestamp;
-        unsigned long m_preinfusionTimestamp;
+        // timer
         EggTimer m_timer = EggTimer();
 
         File m_file;

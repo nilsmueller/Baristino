@@ -25,7 +25,8 @@ void CoffeeMachine::initialize() {
 
 
 void CoffeeMachine::warmup() {
-
+    m_awakeSince = millis();
+    
     LCD::drawWarmUpScreen();
     m_unitThermoBlock.heatTo(config::TEMP_IDLE, ThermoBlock::TBMode::WARMUP);
     m_sdCard.setupWarmupFile();
@@ -33,10 +34,10 @@ void CoffeeMachine::warmup() {
     double startTemp = m_brewParam.current_temperature = m_unitThermoBlock.getTemperature();
     double progress;    
     double val = 0.0f;
+
     while (!m_unitThermoBlock.isSteadyState()) {
         m_unitThermoBlock.update();
         m_brewParam.current_temperature = m_unitThermoBlock.getTemperature();
-        //progress = (config::TEMP_IDLE - abs(config::TEMP_IDLE - m_brewParam.current_temperature)) / config::TEMP_IDLE;
         val = abs((config::TEMP_IDLE - m_brewParam.current_temperature) / (config::TEMP_IDLE - startTemp));
         progress = 1 - max(0, min(1, val));
         LCD::updateWarmUpScreen(progress);
@@ -67,7 +68,7 @@ void CoffeeMachine::warmup() {
 
     // 2. home brew group
     Serial.println("BREWGROUP_HOMING ");
-    m_unitBrewGroup.moveUp();
+    m_unitBrewGroup.home();
     while (m_unitBrewGroup.isMovingUp()) {
         m_unitBrewGroup.checkIfHomed();
     }
@@ -76,7 +77,7 @@ void CoffeeMachine::warmup() {
 
     // 3. open brew group
     Serial.println("BREWGROUP_OPENING");
-    m_unitBrewGroup.moveDown();
+    m_unitBrewGroup.open();
     while (m_unitBrewGroup.isMovingDown()) {
         m_unitBrewGroup.checkIfOpened();
     }
@@ -94,7 +95,7 @@ void CoffeeMachine::updateTemperature() {
 
 
 void CoffeeMachine::updateVolume() {
-    if (m_currentState >= MachineState::TAMPERING) { //m_currentState == MachineState::TAMPERING || m_currentState == MachineState::EXTRACTION || m_currentState == MachineState::RETURN_TO_IDLE) {
+    if (m_currentState >= MachineState::TAMPERING) { 
         m_unitPump.updateScale();
         m_brewParam.current_volume = max(m_brewParam.current_volume, m_unitPump.getCurrentAmount());
     }
@@ -110,6 +111,7 @@ void CoffeeMachine::updateDose() {
 }
 
 void CoffeeMachine::updateBrewGroup() {
+    m_unitBrewGroup.update();
     m_brewGroupPosition = m_unitBrewGroup.getPosition();
     m_brewGroupCurrent = m_unitBrewGroup.getCurrent();
 }
@@ -125,7 +127,35 @@ void CoffeeMachine::updateSensors() {
     updateTemperature();
     updateVolume();
     updateDose();
+
+    // update unit states
     updateBrewGroup();
+}
+
+
+void CoffeeMachine::wakeUp() {
+}
+
+void CoffeeMachine::goSleep() {
+}
+
+// check the button standby button and either wake up the machine or put it into standby mode
+void CoffeeMachine::checkStandby() {
+
+    if (m_currentState == MachineState::STDBY) {
+        if (digitalRead(pindef::STDBY_BTN_IN) == HIGH) {
+            CoffeeMachine::wakeUp();
+        }
+    }
+    else {
+        if (digitalRead(pindef::STDBY_BTN_IN) == HIGH) {
+            CoffeeMachine::goSleep();
+        }
+    }
+
+    if (millis() - m_awakeSince > config::SLEEP_AFTER) {
+        CoffeeMachine::goSleep();
+    }
 }
 
 
@@ -149,7 +179,7 @@ void CoffeeMachine::printSensorValues() {
 // blocking
 void CoffeeMachine::flush() {
     // 1. move down brewgroup
-    m_unitBrewGroup.moveDown();
+    m_unitBrewGroup.press();
     while (m_unitBrewGroup.isMovingDown()) {
         m_unitBrewGroup.checkIfPressed();
     }
@@ -196,41 +226,41 @@ void CoffeeMachine::makeCoffee() {
         case MachineState::BREWGROUP_INSERTION:
             if (m_unitGrinder.isFinished()) {      
                 m_unitGrinder.openFlap();
-                m_grinderFlapOpenedTimestamp = millis();
                 m_brewParam.current_dose = max(m_brewParam.current_dose, m_unitGrinder.getCurrentAmount());// update with last value
+                m_timer.quickStart(2000);
             }
             // wait for 2 seconds so that coffee ground can slide into the brewchamber
-            if (m_unitGrinder.isOpen() && (millis() - m_grinderFlapOpenedTimestamp > 2000)) {
-                m_unitBrewGroup.moveDown();
+            if (m_unitGrinder.isOpen() && m_timer.isFinished()) {
+                m_unitBrewGroup.press();
                 m_unitPump.tareScale();
                 m_currentState = MachineState::TAMPERING;
             }
             break;
 
         case MachineState::TAMPERING:
-            if (m_unitBrewGroup.isMoving()) {
-                m_unitBrewGroup.checkIfPressed();
-            }
 
             if (m_unitBrewGroup.isPress() && m_unitThermoBlock.isSteadyState()) {
                 m_unitPump.setAmount(m_brewParam.set_volume);
                 m_brewParam.start_temperature = m_unitThermoBlock.getTemperature();
                 m_unitThermoBlock.switchMode(ThermoBlock::TBMode::BREW);
                 m_unitPump.switchOn();
+                m_timer.quickStart(m_brewParam.set_preinfusion);
                 m_currentState = MachineState::PREINFUSION;
-                m_preinfusionTimestamp = millis();
-
             }
             break;
 
         case MachineState::PREINFUSION:
-            if (millis() - m_preinfusionTimestamp > 3000) {
+            if (m_timer.isFinished()) {
                 m_unitPump.switchOff();
+                m_timer.quickStart(m_brewParam.set_bloom);
+                m_currentState = MachineState::PREINFUSION_PAUSE;
+            }
+            break;
 
-                if (m_unitThermoBlock.isSteadyState()) {
-                    m_unitPump.switchOn();
-                    m_currentState = MachineState::EXTRACTION;
-                }
+        case MachineState::PREINFUSION_PAUSE:
+            if (m_timer.isFinished() && m_unitThermoBlock.isSteadyState()) {
+                m_unitPump.switchOn();
+                m_currentState = MachineState::EXTRACTION;
             }
             break;
 
@@ -240,7 +270,7 @@ void CoffeeMachine::makeCoffee() {
 
                 m_unitThermoBlock.heatTo(config::TEMP_IDLE, ThermoBlock::TBMode::IDLE);
                 m_unitGrinder.closeFlap();
-                m_unitBrewGroup.moveUp();
+                m_unitBrewGroup.home();
                 m_sdCard.close();
 
                 m_currentState = MachineState::BREWGROUP_HOME;
@@ -248,22 +278,13 @@ void CoffeeMachine::makeCoffee() {
             break;
 
         case MachineState::BREWGROUP_HOME:
-            // first home
-            if (m_unitBrewGroup.isMovingUp()) {
-                m_unitBrewGroup.checkIfHomed();
-            }
-
             if (m_unitBrewGroup.isHome()) {
-                m_unitBrewGroup.moveDown();
+                m_unitBrewGroup.open();
                 m_currentState = MachineState::RETURN_TO_IDLE;
             }
             break;
 
         case MachineState::RETURN_TO_IDLE:
-            if (m_unitBrewGroup.isMovingDown()) {
-                m_unitBrewGroup.checkIfOpened();
-            }
-
             if (m_unitBrewGroup.isOpen() && m_unitGrinder.isClose() && m_unitPump.isOff()) {
                 m_newMenuID = 0;
                 m_currentState = MachineState::IDLE;
@@ -387,15 +408,6 @@ void CoffeeMachine::createStepResponse(double stepPower, bool waterFlow) {
 
 void CoffeeMachine::returnToIdle() {
     if (m_currentState == MachineState::RETURN_TO_IDLE) {
-
-        if (m_unitBrewGroup.getLastState() != BrewGroup::BGState::HOMED && !m_unitBrewGroup.isHome()) {
-            m_unitBrewGroup.moveUp();
-            m_unitBrewGroup.checkIfHomed();
-        }
-
-        if (m_unitBrewGroup.isHome()) {
-            m_unitBrewGroup.moveDown();
-        }
         // home Brewgroup
         // open Brewgroup
         // close Brewgroup Flap

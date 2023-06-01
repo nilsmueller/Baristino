@@ -47,6 +47,10 @@ namespace pindef {
     const int LCD_YP = A3;
     const int LCD_YM = 9;
 
+    // Stdby Button
+    const int STDBY_BTN_IN = 30;
+    const int STDBY_BTN_VCC = 31;
+
     // SD Card 
     const int CHIP_SELECT = 53;
 }
@@ -62,7 +66,7 @@ static const double TEMPERATURE_MIN = 50.0;
 static const double TEMPERATURE_MAX = 120.0;
 static const double QUANTITY_MIN = 5.0;
 static const double QUANTITY_MAX = 20.0;
-static const double EXTRACTION_LOADCELL_CALIBRATION_FACTOR = -1065.019512;
+static const double EXTRACTION_LOADCELL_CALIBRATION_FACTOR = -1068.64712;
 
 // Thermoblocks
 static const double TEMP_IDLE = 90.0;
@@ -73,7 +77,7 @@ static const int DS18B20_NUM_TEMPSENSORS = 1;
 static const uint8_t  DS18B20_ADDRESS_THERMOBLOCK[8] = { 0x28, 0xC9, 0x49, 0x75, 0xD0, 0x01, 0x3C, 0xE4 };;
 
 // Grinder
-static const double GRINDER_LOADCELL_CALIBRATION_FACTOR = -1083.78536585;
+static const double GRINDER_LOADCELL_CALIBRATION_FACTOR = -1066.65;
 static const int STEPPER_STEPS_PER_REV = 2048;
 static const int STEPPER_RPM = 5;
 

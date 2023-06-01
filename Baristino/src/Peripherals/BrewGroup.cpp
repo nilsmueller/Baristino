@@ -30,14 +30,12 @@ void Ensemble::initialize() {
 void Ensemble::moveDown() {
     m_encoder.resetUpdateTimer();
     m_motor.rotate(true);
-    m_currentState = BGState::MOVINGDOWN;
 }
 
 
 void Ensemble::moveUp() {
     m_encoder.resetUpdateTimer();
     m_motor.rotate(false);
-    m_currentState = BGState::MOVINGUP;
 }
 
 
@@ -45,6 +43,7 @@ bool Ensemble::checkIfPressed() {
     if (isStalled()) {
         m_motor.stop();
         m_currentState = BGState::PRESSED;
+        m_transitionTo = BGState::IDLE;
         Serial.print("BrewGroup Pressed!");
         return true;
     }
@@ -56,6 +55,7 @@ bool Ensemble::checkIfHomed() {
     if (isStalled()) {
         m_motor.stop();
         m_currentState = BGState::HOMED;
+        m_transitionTo = BGState::IDLE;
         m_encoder.setOrigin();
         Serial.print("BrewGroup Homed!");
         return true;
@@ -67,10 +67,11 @@ bool Ensemble::checkIfHomed() {
 bool Ensemble::checkIfOpened() {
     if (isMovingDown()) {
         if (m_encoder.getPosition() >= m_positionOpen-m_encoder.getTolerance()) { 
-            //inRange(m_encoder.getPosition(), m_positionOpen-m_encoder.getTolerance(), m_positionOpen+m_encoder.getTolerance())) {
             m_motor.stop();
             m_lastState = m_currentState;
             m_currentState = BGState::OPENED;
+            m_transitionTo = BGState::IDLE;
+            Serial.print("BrewGroup Opened!");
             return true;
         }
     }
@@ -79,7 +80,7 @@ bool Ensemble::checkIfOpened() {
 
 
 bool Ensemble::isStalled() {
-    if (isMoving() && !isCurrentNominal() && !hasPositionChanged()) {
+    if (m_motor.isRotating() && !isCurrentNominal() && !hasPositionChanged()) {
         return true;
     }
     return false;
@@ -95,9 +96,9 @@ int16_t Ensemble::getPosition() {
 bool Ensemble::isHome() {return m_currentState == BGState::HOMED;}
 bool Ensemble::isOpen() {return m_currentState == BGState::OPENED;}
 bool Ensemble::isPress() {return m_currentState == BGState::PRESSED;}
-bool Ensemble::isMoving() {return (isMovingUp() || isMovingDown());}
-bool Ensemble::isMovingUp() {return m_currentState == BGState::MOVINGUP;}
-bool Ensemble::isMovingDown() {return m_currentState == BGState::MOVINGDOWN;}
+bool Ensemble::isMoving() {return m_motor.isRotating();}
+bool Ensemble::isMovingUp() {return m_motor.isRotatingCounterClockwise();}
+bool Ensemble::isMovingDown() {return m_motor.isRotatingClockwise();}
 bool Ensemble::isIdle() {return !isMoving();}
 
 BGState Ensemble::getCurrentState() {return m_currentState;}
@@ -129,29 +130,65 @@ double Ensemble::getCurrent() {
 
 void Ensemble::home() {
     if (!isHome()) {
-        if (!isMovingUp()) {
-            moveUp();
-        }
-        else {
-            checkIfHomed();
-        }
+        m_transitionTo = BGState::HOMED;
+        moveUp();
+        checkIfHomed();
     }
 }
 
 
 void Ensemble::open() {
-    // always has to home before opening
+    if (!isOpen()) {
+        m_transitionTo = BGState::OPENED;
+        moveDown();
+        checkIfOpened();
+    }
 }
 
 void Ensemble::press() {
     if (!isPress()) {
-        if (!isMovingDown()) {
-            moveDown();
-        }
-        else {
-            checkIfPressed();
-        }
+        m_transitionTo = BGState::PRESSED;
+        moveDown();
+        checkIfPressed();
     }
+}
+
+
+void Ensemble::update() {
+    switch (m_transitionTo)
+    {
+    case BGState::IDLE:
+        break;
+    
+    case BGState::HOMED:
+        checkIfHomed();
+        break;
+    
+    case BGState::OPENED:
+        checkIfOpened();
+        break;
+    
+    case BGState::PRESSED:
+        checkIfPressed();
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+void Ensemble::printState() {
+    Serial.print("STATE : current = ");
+    Serial.print((int)m_currentState);
+    Serial.print(" TRANSITION ");
+    Serial.print((int)m_lastState);
+    Serial.print(" -> ");
+    Serial.print((int)m_transitionTo);
+    Serial.print(" | POSITION : ");
+    Serial.print(m_encoder.getPosition());
+    Serial.print(" | MOTOR CURRENT : ");
+    Serial.println(getCurrent());
 }
 
 
@@ -287,13 +324,13 @@ void DCMotor::rotate(bool clockwise)
     if (clockwise) {
         digitalWrite(m_pin1, LOW);
         digitalWrite(m_pin2, HIGH);
+        m_currentState = BGMotorState::CLOCKWISE;
     }
     else {
         digitalWrite(m_pin1, HIGH);
         digitalWrite(m_pin2, LOW);
+        m_currentState = BGMotorState::COUNTERCLOCKWISE;
     }
-
-    m_isOn = true;
 }
 
 
@@ -302,13 +339,13 @@ void DCMotor::stop()
     analogWrite(m_pinEN, 0);
     digitalWrite(m_pin1, LOW);
     digitalWrite(m_pin2, LOW);
-    m_isOn = false;
+    m_currentState = BGMotorState::OFF;
 }
 
 
-bool DCMotor::isOn() {
-    return m_isOn;
-}
+bool DCMotor::isRotatingClockwise() {return m_currentState == BGMotorState::CLOCKWISE;}
+bool DCMotor::isRotatingCounterClockwise() {return m_currentState == BGMotorState::COUNTERCLOCKWISE;}
+bool DCMotor::isRotating() {return (isRotatingClockwise() || isRotatingCounterClockwise());}
 
 
 // AMPMETER
