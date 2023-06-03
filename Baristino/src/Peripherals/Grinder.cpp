@@ -65,14 +65,14 @@ double Hopper::getCurrentAmount() {
 
 // MANUAL CONTROL
 void Hopper::homeFlap() {
-    m_stepperMotor.step(-m_stepsPerDeg * (m_openingAngle + 10));
+    m_stepperMotor.step(m_stepsPerDeg * (m_openingAngle + 10));
     m_currentState = GRState::CLOSE;
 }
 
 
 void Hopper::openFlap() {
     if (isFinished()) {
-        m_stepperMotor.step(m_stepsPerDeg * m_openingAngle);
+        m_stepperMotor.step(-m_stepsPerDeg * m_openingAngle);
         m_currentState = GRState::OPEN;
     }
 }
@@ -80,7 +80,7 @@ void Hopper::openFlap() {
 
 void Hopper::closeFlap() {
     if (isOpen()){
-        m_stepperMotor.step(m_stepsPerDeg * -m_openingAngle);
+        m_stepperMotor.step(m_stepsPerDeg * m_openingAngle);
         m_currentState = GRState::CLOSE;
     }
 }

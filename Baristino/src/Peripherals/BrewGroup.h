@@ -12,6 +12,13 @@
 
 // TODO remove the dependency on "configuration.h"
 
+enum class BGMotorState : uint8_t {
+    OFF,
+    CLOCKWISE,
+    COUNTERCLOCKWISE,
+};
+
+
 // DEVICE CLASSES
 class RotaryEncoder{
     public:
@@ -56,7 +63,9 @@ class DCMotor{
         void setSpeed(uint8_t speed);
         void rotate(bool clockwise = true);
         void stop();
-        bool isOn();
+        bool isRotating();
+        bool isRotatingClockwise();
+        bool isRotatingCounterClockwise();
 
     private:
         uint8_t m_pin1;
@@ -64,7 +73,7 @@ class DCMotor{
         uint8_t m_pinEN;
         uint8_t m_speed;
 
-        bool m_isOn;
+        BGMotorState m_currentState;
 };
 
 
@@ -92,12 +101,11 @@ enum class Status : uint8_t {
 
 enum class BGState : uint8_t {
     IDLE,
-    MOVINGUP,
-    MOVINGDOWN,
     HOMED,
     OPENED,
     PRESSED,
 };
+
 
 class Ensemble {
     public:
@@ -109,17 +117,15 @@ class Ensemble {
         bool isHome();
         bool isOpen();
         bool isPress();
-        bool isIdle();
+        bool isStalled();
         bool isMoving();
         bool isMovingUp();
         bool isMovingDown();
-        bool isStalled();
+        bool isIdle();
         
         BGState getCurrentState();
         BGState getLastState();
 
-        void moveDown();
-        void moveUp();
         bool isCurrentNominal();
         double getCurrent();
 
@@ -130,6 +136,10 @@ class Ensemble {
         void home();
         void open();
         void press();
+
+        void update();
+
+        void printState();
 
 
         
@@ -146,9 +156,14 @@ class Ensemble {
         // FSM
         BGState m_currentState = BGState::IDLE;
         BGState m_lastState = BGState::IDLE;
+        BGState m_transitionTo= BGState::IDLE;
 
         unsigned long m_stallTimeout = 500;
+
         bool hasPositionChanged();
+        void moveDown();
+        void moveUp();
+
 };
 
 }; // namespace BrewGroup

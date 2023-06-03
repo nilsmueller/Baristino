@@ -21,6 +21,8 @@
 #define MINPRESSURE 200
 #define MAXPRESSURE 1000
 
+#define LCD_ROTATE true // flip screen by 180 deg
+
 // COLORS
 #define myBLACK   0x2946
 #define myBLUE    0x24B7 // 33, 150, 190

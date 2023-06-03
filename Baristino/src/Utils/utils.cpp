@@ -54,6 +54,34 @@ void findDS18B20Sensors(const uint8_t busPin) {
 
 
 
+void calibrateScale(const uint8_t pinDOUT, const uint8_t pinSCK, double refMass) {
+  HX711 scale;
+  scale.begin(pinDOUT, pinSCK);
+
+  if (scale.is_ready()) {
+    scale.set_scale();    
+    Serial.println("Tare... remove any weights from the scale.");
+    delay(5000);
+    scale.tare();
+    Serial.println("Tare done...");
+    Serial.print("Place a known weight [g] on the scale...");
+    delay(5000);
+    long reading = scale.get_units(10);
+    Serial.print("Result: ");
+    Serial.println(reading);
+
+
+    Serial.print("Calibration Factor is [g] : ");
+    Serial.println(reading / refMass * 1000);
+  } 
+  else {
+    Serial.println("HX711 not found.");
+  }
+
+}
+
+
+
 EggTimer::EggTimer() {
 }
 
@@ -92,9 +120,7 @@ void EggTimer::stopTimer() {
 
 
 void EggTimer::resetTimer() {
-  if (isActive()) {
     m_startTimeMS = millis();
-  }
 }
 
 
@@ -108,5 +134,13 @@ bool EggTimer::isFinished() {
   if (isActive()) {
     return (millis() - m_startTimeMS > m_durationMS) ? true : false;
   }
+  return false;
+}
+
+void EggTimer::quickStart(unsigned long duration_MS) {
+  stopTimer();
+  setDurationMS(duration_MS);
+  resetTimer();
+  startTimer();
 }
 
