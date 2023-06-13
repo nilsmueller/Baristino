@@ -20,6 +20,8 @@ void CoffeeMachine::initialize() {
     m_unitGrinder.initialize();
     m_unitBrewGroup.initialize();
     m_sdCard.initialize();
+
+    //LCD::drawMainMenu();
 }
 
 
@@ -70,6 +72,7 @@ void CoffeeMachine::warmup() {
     Serial.println("BREWGROUP_HOMING ");
     m_unitBrewGroup.home();
     while (m_unitBrewGroup.isMovingUp()) {
+        m_unitBrewGroup.printState();
         m_unitBrewGroup.checkIfHomed();
     }
 
@@ -79,6 +82,8 @@ void CoffeeMachine::warmup() {
     Serial.println("BREWGROUP_OPENING");
     m_unitBrewGroup.open();
     while (m_unitBrewGroup.isMovingDown()) {
+
+        m_unitBrewGroup.printState();
         m_unitBrewGroup.checkIfOpened();
     }
     
@@ -178,17 +183,26 @@ void CoffeeMachine::printSensorValues() {
 
 // blocking
 void CoffeeMachine::flush() {
-    // 1. move down brewgroup
+    // 1. home
+    m_unitBrewGroup.home();
+    while (m_unitBrewGroup.isMovingUp()) {
+        m_unitBrewGroup.printState();
+        m_unitBrewGroup.checkIfHomed();
+    }
+    delay(1000);
+
+    // 1. press
     m_unitBrewGroup.press();
     while (m_unitBrewGroup.isMovingDown()) {
+        m_unitBrewGroup.printState();
         m_unitBrewGroup.checkIfPressed();
     }
 
-    // 2. switch on Pump for 5 seconds
+    // 3. pump
     Serial.println("Flushing");
     unsigned long pump_start = millis();
     m_unitPump.switchOn();
-    while (millis() - pump_start < 8000) {}
+    while (millis() - pump_start < 6000) {}
     m_unitPump.switchOff();
 }
 
@@ -244,7 +258,7 @@ void CoffeeMachine::makeCoffee() {
                 m_brewParam.start_temperature = m_unitThermoBlock.getTemperature();
                 m_unitThermoBlock.switchMode(ThermoBlock::TBMode::BREW);
                 m_unitPump.switchOn();
-                m_timer.quickStart(m_brewParam.set_preinfusion);
+                m_timer.quickStart(m_brewParam.set_preinfusion * 1000);
                 m_currentState = MachineState::PREINFUSION;
             }
             break;
@@ -252,12 +266,12 @@ void CoffeeMachine::makeCoffee() {
         case MachineState::PREINFUSION:
             if (m_timer.isFinished()) {
                 m_unitPump.switchOff();
-                m_timer.quickStart(m_brewParam.set_bloom);
-                m_currentState = MachineState::PREINFUSION_PAUSE;
+                m_timer.quickStart(m_brewParam.set_bloom * 1000);
+                m_currentState = MachineState::BLOOMING;
             }
             break;
 
-        case MachineState::PREINFUSION_PAUSE:
+        case MachineState::BLOOMING:
             if (m_timer.isFinished() && m_unitThermoBlock.isSteadyState()) {
                 m_unitPump.switchOn();
                 m_currentState = MachineState::EXTRACTION;
@@ -414,3 +428,9 @@ void CoffeeMachine::returnToIdle() {
         // set Temperature to IDLE
     }
 }
+
+
+void CoffeeMachine::printStatus() {
+    LCD::drawStatusBar(m_currentState, &m_brewParam);
+}
+

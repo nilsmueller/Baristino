@@ -7,6 +7,25 @@
 #include "WProgramm.h"
 #endif
 
+// Dont forget to update the printCurrentState in CoffeeMachine.cpp!!!
+enum class MachineState : uint8_t {
+    IDLE,
+    STDBY,
+    WARMUP,
+    COOLING,
+    HEATING,
+    GRINDING,
+    BREWGROUP_INSERTION,
+    TAMPERING,
+    PREINFUSION,
+    BLOOMING,
+    EXTRACTION,
+    BREWGROUP_HOME,
+    GRINDER_HOME,
+    RETURN_TO_IDLE,
+    FLUSHING,
+};
+
 
 #include "configuration.h"
 #include "Utils/utils.h"
@@ -19,34 +38,11 @@
 #include "Peripherals/Pump.h"
 
 #include <SPI.h>
-//#include <SD.h>
 #include "Utils/SDCard.h"
 
-// TODO 1. create return-to-idle routine
+// TODO 1. Separate MachineState from BrewState maybe
 // TODO 2. create possibility to interrupt brew process
-// TODO 3. add EggTimer class
 // TODO 4. 
-
-
-enum class MachineState : uint8_t {
-    IDLE,
-    STDBY,
-    WARMUP,
-    COOLING,
-    HEATING,
-    GRINDING,
-    BREWGROUP_INSERTION,
-    TAMPERING,
-    PREINFUSION,
-    PREINFUSION_PAUSE,
-    EXTRACTION,
-    BREWGROUP_HOME,
-    GRINDER_HOME,
-    RETURN_TO_IDLE,
-    FLUSHING,
-};
-
-
 // TODO add Error Handling. The main Components are implemented. but the main design structure has yet to be thought of.
 
 class CoffeeMachine {
@@ -60,6 +56,7 @@ class CoffeeMachine {
         void updateSensors();
         void printSensorValues();
         void updateLCD();
+        void printStatus();
 
     private:
         ThermoBlock::PIDHeater m_unitThermoBlock;

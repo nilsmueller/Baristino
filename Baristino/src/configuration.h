@@ -66,6 +66,10 @@ static const double TEMPERATURE_MIN = 50.0;
 static const double TEMPERATURE_MAX = 120.0;
 static const double QUANTITY_MIN = 5.0;
 static const double QUANTITY_MAX = 20.0;
+static const double PREINFUSION_MIN = 0.0;
+static const double PREINFUSION_MAX = 10.0;
+static const double BLOOM_MIN = 0.0;
+static const double BLOOM_MAX = 10.0;
 static const double EXTRACTION_LOADCELL_CALIBRATION_FACTOR = -1068.64712;
 
 // Thermoblocks

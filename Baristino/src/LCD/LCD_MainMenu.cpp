@@ -15,28 +15,22 @@ void drawMainMenu() {
     tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 2*LCD_PAD);
     tft.setTextColor(myWHITE);
     tft.setTextSize(3);
-    tft.print("Baristino");
-    tft.setCursor(LCD_TOPBAR_OFFSET_X + LCD_PAD + 135, LCD_TOPBAR_OFFSET_Y + 7*LCD_PAD);
     tft.print("Main Menu");
 
     int width_button_main = 0.9*LCD_MAIN_WIDTH/2 - 1.5*LCD_PAD;
     int height_button_main = 0.9*LCD_MAIN_HEIGHT/2 - 1.5*LCD_PAD;
 
-    // Main
-    int mainpad_x = (LCD_MAIN_WIDTH - 2 * width_button_main) / 3;
-    int mainpad_y = (LCD_MAIN_HEIGHT - 2 * height_button_main) / 3;
-
     char btnLabel[4][10] = {"Coffee", "Custom", "Control", "Settings"};
-    btn_main_coffee.initButtonUL(&tft, LCD_MAIN_ORIGIN_X - LCD_PAD + mainpad_x, LCD_MAIN_ORIGIN_Y + mainpad_y, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[0], 3);
+    btn_main_coffee.initButtonUL(&tft,  20, 74, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[0], 3);
     btn_main_coffee.drawButton(false);
 
-    btn_main_custom.initButtonUL(&tft, LCD_MAIN_ORIGIN_X - LCD_PAD + width_button_main + 2* mainpad_x, LCD_MAIN_ORIGIN_Y + mainpad_y, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[1], 3);
+    btn_main_custom.initButtonUL(&tft, LCD_WIDTH - width_button_main - 20, 74, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[1], 3);
     btn_main_custom.drawButton(false);
 
-    btn_main_control.initButtonUL(&tft, LCD_MAIN_ORIGIN_X - LCD_PAD + mainpad_x, LCD_MAIN_ORIGIN_Y + 2*mainpad_y + height_button_main, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[2], 3);
+    btn_main_control.initButtonUL(&tft, 20, height_button_main + 90, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[2], 3);
     btn_main_control.drawButton(false);
 
-    btn_main_settings.initButtonUL(&tft, LCD_MAIN_ORIGIN_X - LCD_PAD + width_button_main + 2* mainpad_x, LCD_MAIN_ORIGIN_Y + 2*mainpad_y + height_button_main, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[3], 3);
+    btn_main_settings.initButtonUL(&tft, LCD_WIDTH - width_button_main - 20, height_button_main + 90, width_button_main, height_button_main, myBLUE, myYELLOW, myWHITE, btnLabel[3], 3);
     btn_main_settings.drawButton(false);
 } 
 

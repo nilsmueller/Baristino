@@ -1,5 +1,8 @@
 #include "LCD.h"
 
+
+MachineState lastState = MachineState::IDLE;
+
 namespace LCD {
 
 // Frame
@@ -9,10 +12,20 @@ const int LCD_PAD = 6;
 const int LCD_BORDER = 2;
 
 // TopBar
-const int LCD_TOPBAR_WIDTH = LCD_WIDTH - 2*LCD_PAD - 4*LCD_BORDER;
-const int LCD_TOPBAR_HEIGHT = 60 + 2 * LCD_PAD;
+const int LCD_TOPBAR_WIDTH = LCD_WIDTH-2;//LCD_WIDTH - 2*LCD_PAD - 4*LCD_BORDER;
+const int LCD_TOPBAR_HEIGHT = 60;//;60 + 2 * LCD_PAD;
+const int LCD_TOPBAR_X = 1;
+const int LCD_TOPBAR_Y = LCD_TOPBAR_HEIGHT + 1;
 const int LCD_TOPBAR_OFFSET_X = 10;
 const int LCD_TOPBAR_OFFSET_Y = 10;
+
+// BottomBar
+const int LCD_BOTTOMBAR_WIDTH = LCD_WIDTH-2;
+const int LCD_BOTTOMBAR_HEIGHT = 20;
+const int LCD_BOTTOMBAR_X = 1;
+const int LCD_BOTTOMBAR_Y = LCD_HEIGHT - LCD_PAD - LCD_BORDER - LCD_BOTTOMBAR_HEIGHT; 
+const int LCD_BOTTOMBAR_OFFSET_X = 10;
+const int LCD_BOTTOMBAR_OFFSET_Y = 10;
 
 // MainBody
 const int LCD_MAIN_ORIGIN_X = 2*LCD_BORDER + 2*LCD_PAD;
@@ -44,6 +57,10 @@ void initialize() {
   else {
     tft.setRotation(1);
   }            
+
+
+  //pinMode(pindef::LCD_YP, OUTPUT);
+  //pinMode(pindef::LCD_XM, OUTPUT);
 }
 
 
@@ -56,9 +73,17 @@ void drawEmptyFrame() {
 
 void drawTopBar() {
   // topbar rect
-  tft.drawRect(LCD_PAD + LCD_BORDER, LCD_PAD + LCD_BORDER, LCD_WIDTH - 2*(LCD_BORDER + LCD_PAD), LCD_TOPBAR_HEIGHT + 2*LCD_BORDER, myBLUE);
-  tft.drawRect(LCD_PAD + LCD_BORDER + 1, LCD_PAD + LCD_BORDER + 1, LCD_WIDTH - 2*(LCD_BORDER + LCD_PAD) - 2, LCD_TOPBAR_HEIGHT + 2*LCD_BORDER - 2, myBLUE);
-  
+  //tft.drawRect(LCD_PAD + LCD_BORDER, LCD_PAD + LCD_BORDER, LCD_WIDTH - 2*(LCD_BORDER + LCD_PAD), LCD_TOPBAR_HEIGHT + 2*LCD_BORDER, myBLUE);
+  //tft.drawRect(LCD_PAD + LCD_BORDER + 1, LCD_PAD + LCD_BORDER + 1, LCD_WIDTH - 2*(LCD_BORDER + LCD_PAD) - 2, LCD_TOPBAR_HEIGHT + 2*LCD_BORDER - 2, myBLUE);
+  tft.drawFastHLine(LCD_TOPBAR_X, LCD_TOPBAR_Y, LCD_TOPBAR_WIDTH, myBLUE);
+  tft.drawFastHLine(LCD_TOPBAR_X, LCD_TOPBAR_Y - 1, LCD_TOPBAR_WIDTH, myBLUE);
+}
+
+void drawBottomBar() {
+  // bottombar (statusbar) rect
+  tft.drawFastHLine(LCD_BOTTOMBAR_X, LCD_BOTTOMBAR_Y, LCD_BOTTOMBAR_WIDTH, myBLUE);
+  tft.drawFastHLine(LCD_BOTTOMBAR_X, LCD_BOTTOMBAR_Y - 1, LCD_BOTTOMBAR_WIDTH, myBLUE);
+
 }
 
 void drawMainBody() {
@@ -77,7 +102,8 @@ void drawMainBodyDouble() {
 void drawEmptyScreen() {
   drawEmptyFrame();
   drawTopBar();
-  drawMainBody();
+  drawBottomBar();
+  //drawMainBody();
 }
 
 void drawEmptyScreenDouble() {
@@ -87,9 +113,15 @@ void drawEmptyScreenDouble() {
 }
 
 
+void drawTestScreen() {
+}
+
+
 void sleep() {
   tft.fillScreen(0x0000);
 }
+
+
 
 
 void drawErrorScreen(ErrorCode code) {
@@ -117,6 +149,91 @@ bool getTouchCoord(void) {
         }
     }
     return pressed;
+}
+
+
+void clearStatusBar() {
+  //tft.fillRect(LCD_BOTTOMBAR_X+2, LCD_BOTTOMBAR_Y+2, LCD_BOTTOMBAR_WIDTH-4, LCD_BOTTOMBAR_HEIGHT+2, myBLACK);
+  tft.setTextColor(myBLUE, myBLACK);
+  tft.setCursor(LCD_BOTTOMBAR_OFFSET_X, LCD_BOTTOMBAR_Y + LCD_PAD);
+  tft.print("                           ");
+}
+
+void drawStatusBar(MachineState state, BrewParam *brewparam) {
+  //drawEmptyFrame();
+  //drawTopBar();
+  //drawBottomBar();
+  //if (state != lastState) {
+  //  LCD::clearStatusBar();
+  //}
+
+  tft.setCursor(LCD_BOTTOMBAR_OFFSET_X, LCD_BOTTOMBAR_Y + LCD_PAD);
+  tft.setTextColor(myWHITE, myBLACK);
+  tft.setTextSize(2);
+
+  switch (state)
+  {
+  case MachineState::IDLE:
+      tft.print("IDLE             ");
+      break;
+
+  case MachineState::STDBY:
+      tft.print("STANDBY          ");
+      break;
+
+  case MachineState::WARMUP:
+      tft.print("HEATING          ");
+      break;
+
+  case MachineState::COOLING:
+      tft.print("COOLING          ");
+      break;
+
+  case MachineState::GRINDING:
+      tft.print("GRINDING         ");
+      break;
+
+  case MachineState::BREWGROUP_INSERTION:
+      tft.print("BREWGROUP INSERT ");
+      break;
+
+  case MachineState::TAMPERING:
+      tft.print("TAMPING          ");
+      break;
+
+  case MachineState::PREINFUSION:
+      tft.print("PREINFUSION      ");
+      break;
+
+  case MachineState::BLOOMING:
+      tft.print("BLOOMING         ");
+      break;
+
+  case MachineState::EXTRACTION:
+      tft.print("EXTRACTING       ");
+      break;
+
+  case MachineState::GRINDER_HOME:
+      tft.print("HOMING GRINDER   ");
+      break;
+
+  case MachineState::RETURN_TO_IDLE:
+      tft.print("RETURN TO IDLE   ");
+      break;
+  
+  case MachineState::FLUSHING:
+      tft.print("FLUSHING         ");
+      break;
+  
+  default:
+      break;
+  }
+
+  tft.setCursor(LCD_BOTTOMBAR_X + LCD_BOTTOMBAR_WIDTH - 95, LCD_BOTTOMBAR_Y + LCD_PAD);
+  tft.setTextColor(myORANGE, myBLACK);
+  tft.setTextSize(2);
+  tft.print((int)brewparam->current_temperature);
+  tft.print(" C");
 }
 
 

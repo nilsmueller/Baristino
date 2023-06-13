@@ -150,7 +150,7 @@ class Ensemble {
 
         int16_t m_positionOpen = 105;
 
-        double m_minCurrent = -2.4; // A // downward movement (positive step directio)
+        double m_minCurrent = 2.4; // A // downward movement (positive step directio)
         double m_maxCurrent = 2.2; // A // upward movement (negative step directio)
 
         // FSM
@@ -163,6 +163,7 @@ class Ensemble {
         bool hasPositionChanged();
         void moveDown();
         void moveUp();
+        float getCurrentLimit();
 
 };
 

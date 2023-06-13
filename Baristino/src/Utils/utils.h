@@ -15,8 +15,8 @@ struct BrewParam {
     double set_temperature = 93.0f;
     double set_volume = 150.0;
     double set_dose = 12.0;
-    double set_preinfusion = 2000;// ms
-    double set_bloom = 5000; // ms
+    double set_preinfusion = 2;// s
+    double set_bloom = 5; // s
 
     double current_temperature = 0.0;
     double current_volume = 0.0f;

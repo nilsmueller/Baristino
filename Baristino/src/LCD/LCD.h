@@ -94,6 +94,9 @@ extern void initialize();
 
 extern bool getTouchCoord();
 extern void sleep();
+extern void drawTestScreen();
+extern void drawStatusBar(MachineState state, BrewParam *brewparam);
+extern void clearStatusBar();
 extern void drawWarmUpScreen();
 extern void drawFlushScreen();
 extern void drawEmptyScreen();
@@ -105,7 +108,6 @@ extern void drawMakeCoffeeScreen(BrewParam *process); // 21
 extern void drawControlMenu(); // 3
 extern void drawThermoControlMenu(); // 31
 extern void drawStepResponseMenu(ThermoBlock::PIDHeater &thermoblock, WaterControl::Pump &pump);
-
 extern void drawPumpControlMenu(WaterControl::Pump &pump);
 extern void drawGrinderControlMenu(GrinderState *grinderStatus, double *setQuantity, double *currentQuantity);
 extern void drawErrorScreen(ErrorCode code);

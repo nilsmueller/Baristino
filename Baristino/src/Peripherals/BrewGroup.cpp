@@ -80,13 +80,31 @@ bool Ensemble::checkIfOpened() {
 
 
 bool Ensemble::isStalled() {
-    if (m_motor.isRotating() && !isCurrentNominal() && !hasPositionChanged()) {
+    if (m_motor.isRotating() && !hasPositionChanged()) { //&& !isCurrentNominal() && !hasPositionChanged()) {
         return true;
     }
     return false;
 }
 
+// the max allowed current is highly dependant on the state of the brewgroup.
+// An initated movement from an idle state, HOMED or PRESSED requires more current
+// compared to the free movement or forced stop due to end limit.
+// PRESS -> MOVE > MOVE -> HOME
+// HOME -> MOVE > MOVE -> PRESS
+float Ensemble::getCurrentLimit() {
+    
+    if (m_currentState == BGState::PRESSED && m_transitionTo == BGState::HOMED) {
+        return 2.2;
+    }
 
+    else if (m_transitionTo == BGState::PRESSED) {
+        return 2.2;
+    }
+    else {
+        return 2.0;
+    }
+
+}
 
 int16_t Ensemble::getPosition() {
     return m_encoder.getPosition();
@@ -110,14 +128,17 @@ bool Ensemble::isCurrentNominal()
 {
     double current = m_ampmeter.readCurrent();
     
-    if (current <= m_minCurrent || current >= m_maxCurrent) {
-        return false;
-    }
+    //if (abs(current) <= m_minCurrent || abs(current) >= m_maxCurrent) {
+    //    return false;
+    //}
+    if (abs(current) <= getCurrentLimit()) {
+        return true;
+    } 
 
-    return true;
+    return false;
 }
 
-
+// is it moving
 bool Ensemble::hasPositionChanged() {
     return ((millis() - m_encoder.getLastUpdate()) <= m_stallTimeout);
 }
@@ -188,7 +209,9 @@ void Ensemble::printState() {
     Serial.print(" | POSITION : ");
     Serial.print(m_encoder.getPosition());
     Serial.print(" | MOTOR CURRENT : ");
-    Serial.println(getCurrent());
+    Serial.print(getCurrent());
+    Serial.print(" / ");
+    Serial.println(getCurrentLimit());
 }
 
 
